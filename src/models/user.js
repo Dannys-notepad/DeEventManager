@@ -6,10 +6,14 @@ class Users extends Model {}
 Users.init(
   {
     id: {
-      allowNull: false,
-      primaryKey: true,
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4
+      primaryKey: true,
+      allowNull: false,
+      defaultValue: DataTypes.UUIDV4,
+      unique: true,
+      validate: {
+        isUUID: 4,
+      },
     },
     username: {
       type: DataTypes.STRING,
@@ -24,13 +28,18 @@ Users.init(
       type: DataTypes.STRING,
       allowNull: false
     },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false
-  },
+    },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false
+    }
   },
   {
     sequelize,
