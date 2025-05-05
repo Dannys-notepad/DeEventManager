@@ -1,4 +1,4 @@
-module.exports = (link, username) => {
+module.exports = (link, firstName) => {
   return `
   <!DOCTYPE html>
 <html lang="en">
@@ -85,7 +85,7 @@ module.exports = (link, username) => {
         </div>
         
         <div class="content">
-            <p>Hello <span class="highlight">${username}</span>,</p>
+            <p>Hello <span class="highlight">${firstName}</span>,</p>
             
             <p>Welcome to the De Event Manager! 🎉 We're thrilled to have you join our community.</p>
             

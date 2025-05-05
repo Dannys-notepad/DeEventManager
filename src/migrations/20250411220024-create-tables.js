@@ -9,7 +9,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      username: {
+      firstName: {
+        type: Sequelize.STRING
+      },
+      lastName: {
         type: Sequelize.STRING
       },
       email: {
@@ -18,9 +21,14 @@ module.exports = {
       password: {
         type: Sequelize.STRING
       },
-      isVerified: {
-        allowNull: false,
+      profilePicture: {
+        type: Sequelize.STRING
+      },
+      emailVerifiEd: {
         type: Sequelize.BOOLEAN
+      },
+      accountStatus: {
+        type: Sequelize.ENUM
       },
       createdAt: {
         allowNull: false,

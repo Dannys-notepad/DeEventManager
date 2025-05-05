@@ -15,7 +15,11 @@ Users.init(
         isUUID: 4,
       },
     },
-    username: {
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    lastName: {
       type: DataTypes.STRING,
       allowNull: false
     },
@@ -28,16 +32,25 @@ Users.init(
       type: DataTypes.STRING,
       allowNull: false
     },
-    isVerified: {
+    profilePicture: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'null'
+    },
+    emailverified: {
       type: DataTypes.BOOLEAN,
-      allowNull: false
+      defaultValue: false
+    },
+    accountStatus: {
+      type: DataTypes.ENUM('active', 'inactive'),
+      defaultValue: 'inactive'
     },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false
     },
     updatedAt: {
-      type: DataTypes.DATE,
+      type: DataTypes.NOW,
       allowNull: false
     }
   },

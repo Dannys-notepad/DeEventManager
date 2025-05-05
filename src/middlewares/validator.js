@@ -5,7 +5,8 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$
 // SIGNUP SCHEMA
 exports.registerSchema = async (req, res, next) => {
   const schema = Joi.object({
-    username: Joi.string().trim().min(3).max(50).required(),
+    firstName: Joi.string().trim().min(3).max(50).required(),
+    lastName: Joi.string().trim().min(3).max(50).required(),
     email: Joi.string().trim().email().required(),
     password: Joi.string().pattern(passwordRegex).required().messages({
       'string.pattern.base': 'Password must be at least 6 characters long, and include uppercase, lowercase, digit, and special character'
