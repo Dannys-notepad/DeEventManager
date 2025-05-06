@@ -1,4 +1,5 @@
 const Users = require('../models/Users')
+const oauth2Client = require('../config/googleOauth')
 const mailTemp = require('../templates/mailTemplate')
 const sendEmail = require('../utils/mailer')
 const { encrypt, decrypt } = require('../utils/bcrypt')
@@ -165,6 +166,29 @@ exports.loginUser = async (data) => {
           token
         }
     } catch (e) {
-        throw { message: e }
+        throw { message:e }
     }
+}
+
+
+// GOOGLE OAUTH SERVICE
+
+exports.oauth = async () => {
+  try {
+    const authUrl = oauth2Client.generateAuthUrl({
+      access_type: 'offline',
+      scope: ['profile', 'email']
+    })
+    return authUrl
+  } catch (e) {
+    throw { message:e }
+  }
+}
+
+exports.oauthCallback = async (data) => {
+  try {
+    const { tokens } = await oauth2Client.getToken(code)
+  } catch (e) {
+    throw { message:e }
+  }
 }

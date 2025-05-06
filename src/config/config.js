@@ -9,8 +9,8 @@ module.exports =
 {
   development: {
     username: 'root',
-    password: 'root',
-    database: 'deEventManager',
+    password: '',
+    database: 'DeEventManager',
     host: 'localhost',
     dialect: 'mysql'
   },

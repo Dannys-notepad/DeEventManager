@@ -24,11 +24,11 @@ module.exports = {
       profilePicture: {
         type: Sequelize.STRING
       },
-      emailVerifiEd: {
+      emailVerified: {
         type: Sequelize.BOOLEAN
       },
       accountStatus: {
-        type: Sequelize.ENUM
+        type: Sequelize.ENUM('active', 'inactive')
       },
       createdAt: {
         allowNull: false,

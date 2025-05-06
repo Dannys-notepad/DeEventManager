@@ -63,3 +63,26 @@ exports.loginUser = async (req, res) => {
     })
   }
 }
+
+// GOOGLE OAUTH CONTROLLERS
+
+exports.oauth = async (req, res) => {
+  try {
+    const authUrl = await AuthService.oauth()
+    res.redirect(authUrl)
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({ messge: 'error authenticating user' })
+  }
+}
+
+exports.oauthCallback = async (req, res) => {
+  try {
+    const data = req.query.code
+    const authUser = await AuthService.oauthCallback(data)
+
+  } catch (e) {
+    console.error(e)
+    res.status(401).json({ messge: 'error authenticating user' })
+  }
+}
