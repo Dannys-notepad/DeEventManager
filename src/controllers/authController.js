@@ -9,7 +9,7 @@ exports.registerUser = async (req, res) => {
       host: req.get('host')
     }
     const registerUser = await AuthService.registerUser(data)
-    res.status(registerUser.status).json({ message: registerUser.message })
+    res.status(registerUser.status).json({ response: registerUser })
 
   } catch (e) {
     console.error(e)
@@ -21,17 +21,8 @@ exports.registerUser = async (req, res) => {
 // VERIFICATION CONTROLLER
 exports.verifyUser = async (req, res) => {
   try {
-    const data = await {
-      param: req.params,
-      protocol: req.protocol,
-      host: req.get('host')
-    }
-    const verifyUser = AuthService.verifyUser(data)
-    //res.status(verifyUser.status).json({ message: verifyUser.message })
-    if(verifyUser.status !== 200){
-      return res.status(verifyUser.status).json({ message: verifyUser.message })
-    }
-    res.redirect('/api/v1/auth/login')
+    const verifyUser = await AuthService.verifyUser(req, res)
+    //res.redirect('/api/v1/auth/login')
   } catch (e) {
     console.error(e)
     res.status(500).json({
@@ -45,15 +36,16 @@ exports.verifyUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = await req.body
-    const data = {
+    const data = await {
       email,
-      password
+      password,
+      protocol: req.protocol,
+      host: req.get('host')
     }
 
-    const loginUser = AuthService.loginUser(data)
+    const loginUser = await AuthService.loginUser(data)
     res.status(loginUser.status).json({
-      message: loginUser.message,
-      token: loginUser.token
+      response: loginUser
     })
 
   } catch (e) {
@@ -68,21 +60,18 @@ exports.loginUser = async (req, res) => {
 
 exports.oauth = async (req, res) => {
   try {
-    const authUrl = await AuthService.oauth()
-    res.redirect(authUrl)
+    const { token } = await req.user;
+    res.json({
+      response: {
+        message: 'authentication successful',
+        status: 200,
+        token
+      }
+    });
   } catch (e) {
-    console.error(e)
-    res.status(500).json({ messge: 'error authenticating user' })
-  }
-}
-
-exports.oauthCallback = async (req, res) => {
-  try {
-    const data = req.query.code
-    const authUser = await AuthService.oauthCallback(data)
-
-  } catch (e) {
-    console.error(e)
-    res.status(401).json({ messge: 'error authenticating user' })
+    console.log(e)
+    res.status(500).json({
+      error: 'something went wrong'
+    })
   }
 }

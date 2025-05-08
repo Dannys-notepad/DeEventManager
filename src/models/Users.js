@@ -30,14 +30,18 @@ Users.init(
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
+    },
+    googleId: {
+      type: DataTypes.STRING,
+      allowNull: true
     },
     profilePicture: {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: 'null'
     },
-    emailverified: {
+    emailVerified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },

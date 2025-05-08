@@ -1,13 +1,19 @@
 const router = require('express').Router()
+const passport = require('passport')
 const { registerSchema, loginSchema } = require('../middlewares/validator')
-const { registerUser, verifyUser, loginUser, oauth, oauthCallback } = require('../controllers/authController')
+const { registerUser, verifyUser, loginUser, oauth } = require('../controllers/authController')
 
-router.get('/register', registerSchema, registerUser)
+router.post('/register', registerSchema, registerUser)
 router.get('/verify/:token', verifyUser)
-router.get('/login', loginSchema, loginUser)
+router.post('/login', loginSchema, loginUser)
 
 // GOOGLE AUTH ROUTES
-router.get('/google', oauth)
-router.get('/google/callback', oauthCallback)
+router.get('/google', passport.authenticate('google', {
+    scope: ['profile', 'email'],
+}))
+router.get('/google/callback', passport.authenticate('google', { 
+    failureRedirect: '/login',
+    failureFlash: true,
+    session: false }), oauth);
 
 module.exports = router

@@ -1,6 +1,6 @@
 const Joi = require('joi')
 
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$/
 
 // SIGNUP SCHEMA
 exports.registerSchema = async (req, res, next) => {
@@ -28,9 +28,7 @@ exports.registerSchema = async (req, res, next) => {
 exports.loginSchema = async (req, res, next) => {
   const schema = Joi.object({
     email: Joi.string().trim().email().required(),
-    password: Joi.string().pattern(passwordRegex).required().messages({
-      'string.pattern.base': 'Password must be at least 6 characters long, and include uppercase, lowercase, digit, and special character'
-    })
+    password: Joi.string().required()
   })
   
   const { error } = schema.validate(req.body, {abortEarly: false})
