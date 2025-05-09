@@ -11,23 +11,39 @@ module.exports = async (req, res, next) => {
     const token = authHeader.substring(7);
     jwt.verify(token, process.env.JWT_SECRET, async (error, payload) => {
       if (error) {
-        return res.status(401).json({ message: 'Invalid token' });
+        return res.status(401).json({ 
+          response: {
+            message: 'Invalid token',
+            status: 401
+          }
+        });
       }
 
       const user = await Users.findOne({ where: { id: payload.userId } });
       if (!user) {
-        return res.status(401).json({ message: 'User not found' });
+        return res.status(401).json({
+          response: {
+            message: 'user not found',
+            status: 401
+          }
+         });
       }
 
-      if (!user.isVerified) {
-        return res.status(401).json({ message: 'Account not verified' });
+      if (!user.emailVerified) {
+        return res.status(401).json({
+          response: {
+            message: 'Account not verified',
+            status: 401
+          }
+        });
       }
 
-      res.cookie('user', {
+      res.user = {
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email
-      }, {maxAge: 900000, httpOnly: true})
+        email: user.email,
+        id: user.id
+      }
       next();
     });
   } catch (error) {

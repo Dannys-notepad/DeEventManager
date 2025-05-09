@@ -3,8 +3,9 @@ const AuthService = require('../services/AuthService')
 // REGISTRATION CONTROLLER 
 exports.registerUser = async (req, res) => {
   try {
-    const data = await {
-      body: req.body,
+    const body = await req.body
+    const data = {
+      body,
       protocol: req.protocol,
       host: req.get('host')
     }
@@ -31,6 +32,26 @@ exports.verifyUser = async (req, res) => {
   }
 }
 
+// GENERATE VERIFICATION URL CONTROLLER
+exports.generateVerificationUrl = async (req, res) => {
+  try {
+    const { email } = await req.params
+    const data = {
+      email,
+      host: req.get('host'),
+      protocol: req.protocol
+    }
+    const generateVerificationUrl = await AuthService.generateVerificationUrl(data)
+    res.status(generateVerificationUrl.status).json({
+      response: generateVerificationUrl
+    })
+  } catch (e) {
+    console.error(e)
+    res.status(500).json({
+      message: 'error generating verification link'
+    })
+  }
+}
 
 // LOGIN CONTROLLER 
 exports.loginUser = async (req, res) => {
@@ -56,7 +77,7 @@ exports.loginUser = async (req, res) => {
   }
 }
 
-// GOOGLE OAUTH CONTROLLERS
+// GOOGLE OAUTH CONTROLLER
 
 exports.oauth = async (req, res) => {
   try {
@@ -74,4 +95,52 @@ exports.oauth = async (req, res) => {
       error: 'something went wrong'
     })
   }
+}
+
+
+// FORGOTTEN PASSWORD RESET CONTROLLERS
+exports.generatePasswordResetLink = async (req, res) => {
+    try {
+        const { email } = await req.params
+        const data = {
+            email,
+            host: req.get('host'),
+            protocol: req.protocol
+        }
+        const generatePasswordResetLink = await UserService.generatePasswordResetLink(data)
+        res.status(generatePasswordResetLink.status).json({
+            response: {
+                generatePasswordResetLink
+            }
+        })
+    } catch (e) {
+        console.error(e)
+        res.status(500).json({
+            response: {
+                error: 'Something went wrong generating a password reset link',
+                status: 500
+            }
+        })
+    }
+    
+}
+
+exports.resetPassword = async (req, res) => {
+    try {
+        const resetpassword = await UserService.resetpassword(req, res)
+        /*res.status(resetpassword.status).json({
+            response: {
+                resetpassword
+            }
+        })*/
+    } catch (e) {
+        console.error(e)
+        res.status(500).json({
+            response: {
+                error: 'could not reset password',
+                status: 500
+            }
+        })
+    }
+    
 }

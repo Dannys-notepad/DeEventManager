@@ -13,10 +13,9 @@ exports.registerUser = async (data) => {
         const { protocol, host } = await data
         const { firstName, lastName, email, password } = await data.body
         
-        const existingEmail = await Users.findOne({ where: { email: email.toLowerCase() }
-        })
+        const existingEmail = await Users.findOne({ where: { email: email.toLowerCase() }})
         
-        if(existingEmail !== null && existingEmail.length === 1){
+        if(existingEmail /*!== null && existingEmail.length === 1*/){
             return {
                 message: `An account with email: ${email} already exists`,
                 status: 400
@@ -48,7 +47,7 @@ exports.registerUser = async (data) => {
           link
         }
     } catch (e) {
-        throw { message: e }
+        throw { error: e }
     }
 }
 
@@ -70,9 +69,17 @@ exports.verifyUser = async (req, res) => {
     jwt.verify(token, jwtSecret, async (error, payload) => {
       if (error) {
         if (error instanceof jwt.JsonWebTokenError) {
-          const { userId } = jwt.decode(token);
-          const user = await Users.findOne({ where: {id: userId}});
+          const decode = jwt.decode(token);
+          if(!decode){
+            return res.status(400).json({
+              response: {
+                message: 'this verification link is incorrect, check your email foolow instructions and try agian',
+                status: 400
+              }
+            })
+          }
 
+          const user = await Users.findOne({ where: {id: userId}});
           if (!user) {
             return res.status(404).json({
               response: {
@@ -82,7 +89,7 @@ exports.verifyUser = async (req, res) => {
             })
           };
 
-          if (user.isVerified) {
+          if (user.emailVerified) {
             return res.json({
               response: {
                 message: 'your account has been verified, proceed to login',
@@ -91,27 +98,15 @@ exports.verifyUser = async (req, res) => {
             })
           };
 
-          const newToken = jwt.sign({ userId: user.id }, jwtSecret, { expiresIn: '5mins' });
-          const link = `${req.protocol}://${req.get('host')}/api/v1/auth/verify/${newToken}`;
-
-          const mailFormat = {
-            email: user.email,
-            html: sendEmail(link, user.fullName),
-            subject: 'RESEND: ACCOUNT VERIFICATION'
-          };
-
-          //await sendEmail(mailFormat);
           res.status(400).json({
             response: {
-              message: 'Session expired, Link has been sent to email address',
+              message: 'Link as expired, generate another verification link',
               status: 400,
-              link
             }
           })
         }
       } else {
-        const user = await Users.findOne({ where: {id: payload.userId}
-        });
+        const user = await Users.findOne({ where: {id: payload.userId}});
 
         if (!user) {
           return res.status(404).json({
@@ -122,7 +117,7 @@ exports.verifyUser = async (req, res) => {
           })
         };
 
-        if (user.isVerified) {
+        if (user.emailVerified) {
           return res.status(400).json({
             response: {
               message: 'Account is already verified',
@@ -131,7 +126,8 @@ exports.verifyUser = async (req, res) => {
           })
         };
 
-        user.isVerified = true;
+        user.emailVerified = true
+        user.accountStatus = 'active'
         await user.save();
         res.json({
           response: {
@@ -146,120 +142,64 @@ exports.verifyUser = async (req, res) => {
     if (error instanceof jwt.JsonWebTokenError) {
       return res.status(400).json({
         response: {
-          error: 'Session expired, Link has been sent to email address',
+          error: 'Link as expired, generate another verification link',
           status: 400
         }
       })
     }
     res.status(500).json({
       response: {
-        message: 'Error Verifying User',
+        error: 'Error Verifying User',
         status: 500
       }
     })
   }
 };
 
-
-/*exports.verifyUser = async (data) => {
-    try {
-        const { token } = await data.param
-        const { protocol, host, res } = await data
-        
-        if(!token){
-            return res.status(400).json({
-                message: `Token not found`,
-                status: 400
-            })
-        }
-        
-        jwt.verify(token, jwtSecret, async (error, payload) => {
-          if(error){
-            if(error instanceof jwt.JsonWebTokenError){
-              const { userId } = jwt.decode(token)
-              const user = await Users.findOne({ where: { id: userId}})
-              
-              //console.log(user)
-
-              if(!user){
-                return res.status(404).json({
-                  response: {
-                    message: 'account not found',
-                    status: 404
-                  }
-                })
-              }
-              
-              if(user.isVerified){
-                return res.status(400).json({
-                  response: {
-                    message: 'account already verified',
-                    status: 400
-                  }
-                })
-              }
-              
-              const newToken = jwt.sign({ userId: user.id }, jwtSecret, { expiresIn: '5mins' })
-              link = `${protocol}://${host}/api/v1/verify/${newToken}`
-              
-              const mailFormat = {
-                email: user.email,
-                html: mailTemp(link, user.firstName),
-                subject: 'RE: ACCOUNT VERIFICATION'
-              }
-              
-              //await sendEmail(mailFormat)
-              return res.status(400).json({
-                response: {
-                  message: 'token expired, another verification link has been sent to your email',
-                  status: 400,
-                  link
-                }
-              })
-                
-              
-            }
-          } else {
-            const user = await Users.findOne({ where: {id: payload.userId}})
-            
-            if(!user){
-              return res.status(404).json({
-                response: {
-                  message: 'account not found',
-                  status: 404
-                }
-              })
-            }
-            
-            if(user.emailVerified){
-              return res.status(400).json({
-                response: {
-                  message: 'account already verified',
-                  status: 400
-                }
-              })
-            }
-            
-            user.emailVerified = true
-            user.accountStatus = 'active'
-            await user.save()
-          }
-        })
-        res.status(200).json({
-          message: 'acount successfully verified',
-          status: 200
-        })
-    } catch(e) {
-        if(e instanceof jwt.JsonWebTokenError){
-          return {
-            message: 'Session expired, another link as been sent to your email',
-            status: 400
-          }
-        }
-
-        throw { message: e }
+// USER GENERATE VERIFICATION URL SERVICE
+exports.generateVerificationUrl = async (data) => {
+  try {
+    const { email, protocol, host } = await data
+    
+    //console.log(email)
+    const existingEmail = await Users.findOne({where: { email }})
+    if(!existingEmail){
+      return {
+        message: 'account do not exist',
+        status: 404
+      }
     }
-}*/
+
+    if (existingEmail.emailVerified) {
+      return res.json({
+        response: {
+          message: 'your account has been verified, proceed to login',
+          status: 200
+        }
+      })
+    }
+
+    const newToken = jwt.sign({ userId: existingEmail.id }, jwtSecret, { expiresIn: '5mins' });
+    const link = `${protocol}://${host}/api/v1/auth/verify/${newToken}`;
+
+    const mailFormat = {
+      email: existingEmail.email,
+      html: sendEmail(link, existingEmail.fullName),
+      subject: 'RESEND: ACCOUNT VERIFICATION'
+    };
+
+    //await sendEmail(mailFormat);
+    return {
+      message: 'Verification link has been sent to your email address',
+      status: 200,
+      link
+    }
+
+  } catch (e) {
+    throw { errror:e }
+    
+  }
+}
 
 // USER LOGIN SERVICE
 exports.loginUser = async (data) => {
@@ -274,7 +214,7 @@ exports.loginUser = async (data) => {
           }
         }
         
-        if(user.emailVerified === false){
+        if(!user.emailVerified){
           
           const token = jwt.sign({ userId: user.id }, jwtSecret, { expiresIn: '5mins' })
           const link = `${protocol}://${host}/api/v1/auth/verify/${token}`
@@ -310,12 +250,12 @@ exports.loginUser = async (data) => {
           token
         }
     } catch (e) {
-        throw { message:e }
+        throw { error:e }
     }
 }
 
 
-// GOOGLE OAUTH SERVICE
+// USER GOOGLE OAUTH SERVICE
 
 exports.oauth = async () => {
   try {
@@ -325,7 +265,7 @@ exports.oauth = async () => {
     })
     return authUrl
   } catch (e) {
-    throw { message:e }
+    throw { error:e }
   }
 }
 
@@ -366,6 +306,152 @@ exports.oauthCallback = async (data) => {
       token
     }
   } catch (e) {
-    throw { message:e }
+    throw { error:e }
   }
 }
+
+
+// USER FORGOTTEN PASSEORD RESET SERVICE
+exports.generatePasswordResetLink = async (data) => {
+  try {
+      const { email, host, protocol } = await data
+
+      const existingUser = await Users.findOne({where: { email }})
+      if(!existingUser){
+        return {
+          message: 'account do not exist',
+          status: 404
+        }
+      }
+
+      if(!existingUser.emailVerified){
+        return {
+          message: 'account has not be verified yet, verify before reseting password',
+          status: 400
+        }
+      }
+
+      const newToken = jwt.sign({ userId: existingUser.id }, jwtSecret, { expiresIn: '5mins' });
+      const link = `${protocol}://${host}/api/v1/user/reset-password/${newToken}`;
+      
+      const mailFormat = {
+        email: existingUser.email,
+        html: sendEmail(link, existingUser.fullName),
+        subject: 'PASSWORD RESET'
+      };
+      
+      //await sendEmail(mailFormat);
+      return {
+        message: 'password reset link has been sent to your email address',
+        status: 200,
+        link
+      }
+
+  } catch (e) {
+      throw { error:e }
+  }
+  
+}
+
+// USER EMAIL CONFIRMATION SERVICE
+exports.confirmEmail = async (req, res) => {
+  try {
+    const { token } = await req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        response: {
+          message: 'Token not found',
+          status: 400
+        }
+      })
+    };
+
+    jwt.verify(token, jwtSecret, async (error, payload) => {
+      if (error) {
+        if (error instanceof jwt.JsonWebTokenError) {
+          const decode = jwt.decode(token);
+          if(!decode){
+            return res.status(400).json({
+              response: {
+                message: 'this password reset link is incorrect, check your email foolow instructions and try agian',
+                status: 400
+              }
+            })
+          }
+
+          const user = await Users.findOne({ where: {id: userId }});
+          if (!user) {
+            return res.status(404).json({
+              response: {
+                message: 'Account not found',
+                status: 404
+              }
+            })
+          };
+
+          if (!user.emailVerified) {
+            return res.json({
+              response: {
+                message: 'account has not be verified yet, verify before reseting password',
+                status: 400
+              }
+            })
+          };
+
+          res.status(400).json({
+            response: {
+              message: 'Link as expired, generate another password reset link',
+              status: 400,
+            }
+          })
+        }
+      } else {
+        const user = await Users.findOne({ where: {id: payload.userId}});
+
+        if (!user) {
+          return res.status(404).json({
+           response: {
+            message: 'Account not found',
+            status: 404
+          }
+          })
+        };
+
+        if (!user.emailVerified) {
+          return res.status(400).json({
+            response: {
+              message: 'account has not be verified yet, verify before reseting password',
+              status: 400
+            }
+          })
+        };
+
+        
+        await user.save();
+        res.json({
+          response: {
+            message: 'account verified proceed to login',
+            status: 200
+          }
+        })
+      }
+    })
+  } catch (error) {
+    console.log(error);
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(400).json({
+        response: {
+          error: 'Link as expired, generate another verification link',
+          status: 400
+        }
+      })
+    }
+    res.status(500).json({
+      response: {
+        error: 'Error Verifying User',
+        status: 500
+      }
+    })
+  }
+};
