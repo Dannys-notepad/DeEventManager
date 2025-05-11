@@ -79,7 +79,7 @@ exports.verifyUser = async (req, res) => {
             })
           }
 
-          const user = await Users.findOne({ where: {id: userId}});
+          const user = await Users.findOne({ where: {id: decode.userId}});
           if (!user) {
             return res.status(404).json({
               response: {
@@ -236,7 +236,7 @@ exports.loginUser = async (data) => {
 
 
         const confirmPassword = await decrypt(password, user.password)
-        if(confirmPassword === false){
+        if(!confirmPassword){
           return {
             message: 'incorrect password',
             status: 401
@@ -332,7 +332,7 @@ exports.generatePasswordResetLink = async (data) => {
       }
 
       const newToken = jwt.sign({ userId: existingUser.id }, jwtSecret, { expiresIn: '5mins' });
-      const link = `${protocol}://${host}/api/v1/user/reset-password/${newToken}`;
+      const link = `${protocol}://${host}/api/v1/auth/forgotten-password/confirm-email/${newToken}`;
       
       const mailFormat = {
         email: existingUser.email,
@@ -342,7 +342,7 @@ exports.generatePasswordResetLink = async (data) => {
       
       //await sendEmail(mailFormat);
       return {
-        message: 'password reset link has been sent to your email address',
+        message: 'an email confirmation link has been sent to your email address',
         status: 200,
         link
       }
@@ -353,7 +353,7 @@ exports.generatePasswordResetLink = async (data) => {
   
 }
 
-// USER EMAIL CONFIRMATION SERVICE
+// USER EMAIL CONFIRMATION FOR PASSWORD RESET SERVICE SERVICE
 exports.confirmEmail = async (req, res) => {
   try {
     const { token } = await req.params;
@@ -374,13 +374,13 @@ exports.confirmEmail = async (req, res) => {
           if(!decode){
             return res.status(400).json({
               response: {
-                message: 'this password reset link is incorrect, check your email foolow instructions and try agian',
+                message: 'this email confirmation link is incorrect, check your email follow instructions and try agian',
                 status: 400
               }
             })
           }
 
-          const user = await Users.findOne({ where: {id: userId }});
+          const user = await Users.findOne({ where: {id: decode.userId }});
           if (!user) {
             return res.status(404).json({
               response: {
@@ -419,19 +419,117 @@ exports.confirmEmail = async (req, res) => {
         };
 
         if (!user.emailVerified) {
-          return res.status(400).json({
+          user.emailVerified = true
+          user.accountStatus = 'active'
+        };
+
+        const newToken = jwt.sign({ userId: user.id }, jwtSecret, { expiresIn: '5mins' })
+        const resetLink = `${req.protocol}://${req.get('host')}/api/v1/auth/forgotten-password/reset-password/${newToken}`
+        await user.save()
+        res.json({
+          response: {
+            message: 'email verified proceed to password reset',
+            status: 200,
+            resetLink
+          }
+        })
+      }
+    })
+  } catch (error) {
+    console.log(error);
+    if (error instanceof jwt.JsonWebTokenError) {
+      return res.status(400).json({
+        response: {
+          error: 'Link as expired, generate another verification link',
+          status: 400
+        }
+      })
+    }
+    res.status(500).json({
+      response: {
+        error: 'Error Verifying User',
+        status: 500
+      }
+    })
+  }
+};
+
+
+// USER PASSWORD RESET SERVICE
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token } = await req.params;
+    const { newPassword } = await req.body
+
+    if (!token) {
+      return res.status(400).json({
+        response: {
+          message: 'Token not found',
+          status: 400
+        }
+      })
+    };
+
+    jwt.verify(token, jwtSecret, async (error, payload) => {
+      if (error) {
+        if (error instanceof jwt.JsonWebTokenError) {
+          const decode = jwt.decode(token);
+          if(!decode){
+            return res.status(400).json({
+              response: {
+                message: 'this password reset link is incorrect, check your email follow instructions and try agian',
+                status: 400
+              }
+            })
+          }
+
+          const user = await Users.findOne({ where: {id: decode.userId }});
+          if (!user) {
+            return res.status(404).json({
+              response: {
+                message: 'Account not found',
+                status: 404
+              }
+            })
+          };
+
+          res.status(400).json({
             response: {
-              message: 'account has not be verified yet, verify before reseting password',
-              status: 400
+              message: 'Link as expired, generate another password reset link',
+              status: 400,
             }
+          })
+        }
+      } else {
+        const user = await Users.findOne({ where: {id: payload.userId}});
+
+        if (!user) {
+          return res.status(404).json({
+           response: {
+            message: 'Account not found',
+            status: 404
+          }
           })
         };
 
-        
-        await user.save();
+        if (!user.emailVerified) {
+          user.emailVerified = true
+          user.accountStatus = 'active'
+        };
+
+        const encryptedPassword = await encrypt(newPassword)
+        user.password = encryptedPassword
+        await user.save()
+        res.status(200).json({
+          response: {
+            message: 'Password rest successful',
+            status: 200
+          }
+        })
+
         res.json({
           response: {
-            message: 'account verified proceed to login',
+            message: 'email verified proceed to password reset',
             status: 200
           }
         })

@@ -21,40 +21,15 @@ exports.dashboard = async (req, res) => {
     
 }
 
-exports.generatePasswordResetLink = async (req, res) => {
-    try {
-        const id = await res.user.id
-        const data = {
-            id,
-            host: req.get('host'),
-            protocol: req.protocol
-        }
-        const generatePasswordResetLink = await UserService.generatePasswordResetLink(data)
-        res.status(generatePasswordResetLink.status).json({
-            response: {
-                generatePasswordResetLink
-            }
-        })
-    } catch (e) {
-        console.error(e)
-        res.status(500).json({
-            response: {
-                error: 'Something went wrong generating a password reset link',
-                status: 500
-            }
-        })
-    }
-    
-}
-
+// PASSOWRD RESET CONTROLLER
 exports.resetPassword = async (req, res) => {
     try {
-        const user = await res.user
-        const { token } = await req.params
+        const id = await res.user.id
+        const { oldPassword, newPassword } = await req.body
         const data = {
-            user,
-            host: req.get('host'),
-            protocol: req.protocol
+            id,
+            oldPassword,
+            newPassword
         }
         const resetpassword = await UserService.resetpassword(data)
         res.status(resetpassword.status).json({

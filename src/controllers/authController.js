@@ -107,7 +107,7 @@ exports.generatePasswordResetLink = async (req, res) => {
             host: req.get('host'),
             protocol: req.protocol
         }
-        const generatePasswordResetLink = await UserService.generatePasswordResetLink(data)
+        const generatePasswordResetLink = await AuthService.generatePasswordResetLink(data)
         res.status(generatePasswordResetLink.status).json({
             response: {
                 generatePasswordResetLink
@@ -125,14 +125,9 @@ exports.generatePasswordResetLink = async (req, res) => {
     
 }
 
-exports.resetPassword = async (req, res) => {
+exports.confirmEmail = async (req, res) => {
     try {
-        const resetpassword = await UserService.resetpassword(req, res)
-        /*res.status(resetpassword.status).json({
-            response: {
-                resetpassword
-            }
-        })*/
+        const confirmEmail = await AuthService.confirmEmail(req, res)
     } catch (e) {
         console.error(e)
         res.status(500).json({
@@ -141,6 +136,20 @@ exports.resetPassword = async (req, res) => {
                 status: 500
             }
         })
-    }
-    
+    }   
+}
+
+exports.resetPassword = async (req, res) => {
+  try {
+      const resetpassword = await AuthService.resetPassword(req, res)
+  } catch (e) {
+      console.error(e)
+      res.status(500).json({
+          response: {
+              error: 'could not reset password',
+              status: 500
+          }
+      })
+  }
+  
 }

@@ -37,3 +37,31 @@ exports.loginSchema = async (req, res, next) => {
   }
   next()
 }
+
+// RESET PASSWORD SCHEMA
+exports.resetPasswordSchema = async (req, res, next) => {
+  const schema = Joi.object({
+    newPassword: Joi.string().required()
+  })
+  
+  const { error } = schema.validate(req.body, {abortEarly: false})
+  if(error){
+    return res.status(400).json({message: error.message})
+  }
+  next()
+}
+
+
+// USER RESET PASSWORD SCHEMA
+exports.userPasswordResetSchema = async (req, res, next) => {
+  const schema = Joi.object({
+    oldPassowrd: Joi.string().required(),
+    newPassword: Joi.string().required()
+  })
+  
+  const { error } = schema.validate(req.body, {abortEarly: false})
+  if(error){
+    return res.status(400).json({message: error.message})
+  }
+  next()
+}

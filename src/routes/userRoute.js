@@ -1,14 +1,14 @@
 const router = require('express').Router()
-const { dashboard, generatePasswordResetLink, resetPassword } = require('../controllers/userController')
+const { dashboard, resetPassword } = require('../controllers/userController')
 const authorization = require('../middlewares/authorization')
+const { userPasswordResetSchema } = require('../middlewares/validator')
 
 router.use(authorization)
 
 router.get('/dashboard', dashboard)
 
-// PASSWORD RESET ROUTES
-router.post('/generate-password-reset-link', generatePasswordResetLink)
-router.get('/password/reset-password/:token', resetPassword)
+// PASSWORD RESET ROUTE
+router.post('/password/reset-password', userPasswordResetSchema, resetPassword)
 
 
 module.exports = router
