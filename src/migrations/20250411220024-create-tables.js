@@ -45,9 +45,37 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       }
+    }),
+    await queryInterface.createTable('Tokens', {
+      id: {
+        type: Sequelize.UUID,
+        primaryKey: true,
+        allowNull: false,
+        defaultValue: Sequelize.UUIDV4,
+        unique: true,
+        validate: {
+          isUUID: 4,
+        },
+      },
+      token: {
+        type: Sequelize.STRING
+      },
+      userId: {
+        
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
     });
   },
+  
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Users');
+    await queryInterface.dropTable('Users'),
+    await queryInterface.dropTable('Tokens')
   }
 };

@@ -31,7 +31,7 @@ exports.resetPassword = async (req, res) => {
             oldPassword,
             newPassword
         }
-        const resetpassword = await UserService.resetpassword(data)
+        const resetpassword = await UserService.resetPassword(data)
         res.status(resetpassword.status).json({
             response: {
                 resetpassword
@@ -47,4 +47,28 @@ exports.resetPassword = async (req, res) => {
         })
     }
     
+}
+
+
+// USER ACCOUNT DELETE CONTROLLER
+exports.deleteAccount = async (req, res) => {
+    try {
+        const { password } = await req.body
+        const userId = await res.user.id
+        const deleteAccount = await UserService.deleteAccount({
+            password, userId
+        })
+        res.status(deleteAccount.status).json({
+            response: {
+                deleteAccount
+            }
+        })
+    } catch (e) {
+        console.error(e)
+        res.status(500).json({
+            response: {
+                error: 'could not delete user account'
+            }
+        })
+    }
 }

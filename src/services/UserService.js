@@ -53,3 +53,43 @@ exports.resetPassword = async (data) => {
     }
     
 }
+
+// USER ACCOUNT DELETE SERVICE
+exports.deleteAccount = async (data) => {
+  try {
+      const { password, userId } = await data
+      const user = await Users.findOne({ where: { id: userId }})
+      if(!user){
+        return {
+          message: 'user user not found', 
+          status: 404
+        }
+      }
+
+      const confirmPassword = await decrypt(password, user.password)
+      if(!confirmPassword){
+        return {
+          message: 'incorrect password',
+          status: 401
+        }
+      }
+
+      const deleteUser = await Users.destroy({
+        where: { id: userId}
+      })
+
+      // if(deleteUser !== 1){
+      //   return {
+      //     message: 'user user not found', 
+      //     status: 404
+      //   }
+      // }
+
+      return {
+        message: 'user account was successfully deleted', 
+        status: 200
+      }
+  } catch (e) {
+      throw { error:e }
+  }
+}

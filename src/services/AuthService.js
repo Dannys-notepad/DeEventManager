@@ -459,7 +459,8 @@ exports.confirmEmail = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     const { token } = await req.params;
-    const { newPassword } = await req.body
+    const { password } = await req.body
+    const newPassword = password
 
     if (!token) {
       return res.status(400).json({

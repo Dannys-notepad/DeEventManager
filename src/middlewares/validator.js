@@ -41,7 +41,7 @@ exports.loginSchema = async (req, res, next) => {
 // RESET PASSWORD SCHEMA
 exports.resetPasswordSchema = async (req, res, next) => {
   const schema = Joi.object({
-    newPassword: Joi.string().required()
+    password: Joi.string().required()
   })
   
   const { error } = schema.validate(req.body, {abortEarly: false})
@@ -55,8 +55,10 @@ exports.resetPasswordSchema = async (req, res, next) => {
 // USER RESET PASSWORD SCHEMA
 exports.userPasswordResetSchema = async (req, res, next) => {
   const schema = Joi.object({
-    oldPassowrd: Joi.string().required(),
-    newPassword: Joi.string().required()
+    oldPassword: Joi.string().required(),
+    newPassword: Joi.string().pattern(passwordRegex).required().messages({
+      'string.pattern.base': 'New Password must be at least 6 characters long, and include uppercase, lowercase, digit, and special character'
+    })
   })
   
   const { error } = schema.validate(req.body, {abortEarly: false})
