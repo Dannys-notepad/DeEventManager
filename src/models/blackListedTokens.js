@@ -1,9 +1,9 @@
 const { Sequelize, DataTypes,  Model} = require('sequelize')
 const sequelize = require('../database/sequelize')
 
-class Tokens extends Model {}
+class blackListedTokens extends Model {}
 
-Tokens.init(
+blackListedTokens.init(
   {
     id: {
       type: DataTypes.UUID,
@@ -20,7 +20,11 @@ Tokens.init(
       allowNull: false
     },
     userId: {
-      
+      type: DataTypes.UUID,
+      references: {
+        model: "Users",
+        key: 'id'
+      }
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -33,9 +37,14 @@ Tokens.init(
   },
   {
     sequelize,
-    modelName: 'Token',
-    tableName: 'Tokens'
+    modelName: 'blackListedTokens',
+    tableName: 'blackListedTokens'
   }
 )
 
-module.exports = Tokens
+blackListedTokens.associate = (models) => {
+    Reviews.belongsTo(models.Users, { foreignKey: 'userId' });
+  return blackListedTokens;
+};
+
+module.exports = blackListedTokens

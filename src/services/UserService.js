@@ -3,6 +3,7 @@ const mailTemp = require('../templates/mailTemplate')
 const sendEmail = require('../utils/mailer')
 const { encrypt, decrypt } = require('../utils/bcrypt')
 const jwt = require('jsonwebtoken')
+const blackListedTokens = require('../models/blackListedTokens')
 const jwtSecret = process.env.JWT_SECRET
 
 exports.dashboardContent = async (data) => {
@@ -16,6 +17,24 @@ exports.dashboardContent = async (data) => {
         throw { error:e }
     }
     
+}
+
+
+// USER LOGOUT SERVICE
+exports.logout = async (data) => {
+    try {
+       const { userId, token } = await data
+       const newBlackList = await blackListedTokens.create({
+        userId,
+        token
+       })
+       return {
+        message: 'logout successful',
+        status: 200
+       }
+    } catch (e) {
+        throw { error:e }        
+    }
 }
 
 

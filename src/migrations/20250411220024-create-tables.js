@@ -46,7 +46,7 @@ module.exports = {
         type: Sequelize.DATE
       }
     }),
-    await queryInterface.createTable('Tokens', {
+    await queryInterface.createTable('blackListedTokens', {
       id: {
         type: Sequelize.UUID,
         primaryKey: true,
@@ -61,7 +61,11 @@ module.exports = {
         type: Sequelize.STRING
       },
       userId: {
-        
+        type: Sequelize.UUID,
+        references: {
+          model: 'Users',
+          key: 'id'
+        }
       },
       createdAt: {
         allowNull: false,
@@ -75,7 +79,7 @@ module.exports = {
   },
   
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Users'),
-    await queryInterface.dropTable('Tokens')
+    await queryInterface.dropTable('blackListedTokens'),
+    await queryInterface.dropTable('Users')
   }
 };

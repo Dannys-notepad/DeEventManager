@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Users = require('../models/Users.js');
+const blackListedTokens = require('../models/blackListedTokens.js');
 
 module.exports = async (req, res, next) => {
   try {
@@ -9,6 +10,17 @@ module.exports = async (req, res, next) => {
     }
 
     const token = authHeader.substring(7);
+    console.log(token)
+    const tokenIsBlackListed = await blackListedTokens.findOne({ where: { token }})
+    if(tokenIsBlackListed){
+      return res.status(401).json({
+        response: {
+          message: 'invalid token',
+          status: 401
+        }
+      })
+    }
+
     jwt.verify(token, process.env.JWT_SECRET, async (error, payload) => {
       if (error) {
         return res.status(401).json({ 

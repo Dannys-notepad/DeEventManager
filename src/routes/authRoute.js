@@ -6,7 +6,7 @@ const { registerUser, verifyUser, generateVerificationUrl, loginUser, oauth, gen
 // NORMAL ACCESS ROUTES
 router.post('/register', registerSchema, registerUser)
 router.get('/verify/:token', verifyUser)
-router.get('/get-verification-link/:email', generateVerificationUrl)
+router.get('/resend-verification-link/:email', generateVerificationUrl)
 router.post('/login', loginSchema, loginUser)
 
 
@@ -21,7 +21,7 @@ router.get('/google/callback', passport.authenticate('google', {
 
 
 // FORGOTTEM PASSEORD ROUTES
-router.post('/forgotten-password/generate-password-reset-link/:email', generatePasswordResetLink)
+router.post('/forgotten-password/request-password-reset-link/:email', generatePasswordResetLink)
 router.get('/forgotten-password/confirm-email/:token', confirmEmail)
 router.post('/forgotten-password/reset-password/:token', resetPasswordSchema, resetPassword)
 

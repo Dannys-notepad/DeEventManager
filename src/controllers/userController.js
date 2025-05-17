@@ -1,3 +1,4 @@
+const { response } = require('express')
 const UserService = require('../services/UserService')
 
 exports.dashboard = async (req, res) => {
@@ -70,5 +71,29 @@ exports.deleteAccount = async (req, res) => {
                 error: 'could not delete user account'
             }
         })
+    }
+}
+
+// USER LOGOUT CONTROLLER
+exports.logout = async (req, res) => {
+    try {
+        const userId = await res.user.id
+        const token = req.headers.authorization.substring(7)
+        const data = {
+            userId,
+            token
+        }
+        const logout = await UserService.logout(data)
+        res.status(logout.status).json({
+            response: logout
+        })
+    } catch (e) {
+        console.error(e)
+        res.status(500).json({
+            response: {
+                error: 'could not logout user',
+                status: '500'
+            }
+        })        
     }
 }

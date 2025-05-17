@@ -60,9 +60,14 @@ Users.init(
   },
   {
     sequelize,
-    modelName: 'User',
+    modelName: 'Users',
     tableName: 'Users'
   }
 )
+
+Users.associate = (models) => {
+    Users.hasMany(models.blackListedTokens, { foreignKey: 'userId' });
+  return Users;
+};
 
 module.exports = Users
