@@ -1,9 +1,9 @@
 const { Sequelize, DataTypes,  Model} = require('sequelize')
 const sequelize = require('../config/sequelize.db')
 
-class Users extends Model {}
+class Event extends Model {}
 
-Users.init(
+Event.init(
   {
     id: {
       type: DataTypes.UUID,
@@ -64,17 +64,14 @@ Users.init(
   },
   {
     sequelize,
-    modelName: 'Users',
-    tableName: 'Users'
+    modelName: 'Event',
+    tableName: 'Event'
   }
 )
 
-Users.associate = (models) => {
-    Users.hasMany(models.blackListedTokens, {
-      foreignKey: 'userId',
-      onDelete: 'CASCADE'
-     });
-  return Users;
+Event.associate = (models) => {
+    Event.belongsTo(models.Users, { foreignKey: 'userId' });
+  return Event;
 };
 
-module.exports = Users
+module.exports = Event

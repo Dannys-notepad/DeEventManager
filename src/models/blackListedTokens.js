@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes,  Model} = require('sequelize')
-const sequelize = require('../database/sequelize')
+const sequelize = require('../config/sequelize.db')
 
 class blackListedTokens extends Model {}
 
@@ -43,7 +43,7 @@ blackListedTokens.init(
 )
 
 blackListedTokens.associate = (models) => {
-    Reviews.belongsTo(models.Users, { foreignKey: 'userId' });
+    blackListedTokens.belongsTo(models.Users, { foreignKey: 'userId' });
   return blackListedTokens;
 };
 

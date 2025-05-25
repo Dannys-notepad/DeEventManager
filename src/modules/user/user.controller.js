@@ -1,5 +1,5 @@
 const { response } = require('express')
-const UserService = require('../services/UserService')
+const UserService = require('./user.service')
 
 exports.dashboard = async (req, res) => {
     try {
@@ -56,9 +56,11 @@ exports.deleteAccount = async (req, res) => {
     try {
         const { password } = await req.body
         const userId = await res.user.id
-        const deleteAccount = await UserService.deleteAccount({
-            password, userId
-        })
+        const data = {
+            password,
+            userId
+        }
+        const deleteAccount = await UserService.deleteAccount(data)
         res.status(deleteAccount.status).json({
             response: {
                 deleteAccount

@@ -1,10 +1,10 @@
 {
   "name": "deeventmanager",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "node --watch app.js",
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
     "db:migrate": "npx sequelize-cli db:migrate"
   },
   "keywords": [],

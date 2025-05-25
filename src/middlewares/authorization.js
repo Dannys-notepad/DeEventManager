@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Users = require('../models/Users.js');
-const blackListedTokens = require('../models/blackListedTokens.js');
+const blackListedTokens = require('../models/blackListedTokens');
 
 module.exports = async (req, res, next) => {
   try {

@@ -61,22 +61,22 @@ curl -X POST "http://localhost:3000/api/v1/auth/register"
 
 ---
 
-### 2. Verify Account(email)
+### 2. Account Activation
 
-- **URL**: `/auth/verify/{token}`
+- **URL**: `/auth/activate-account/{token}`
 - **Method**: `GET`
 - **Description**: verify an account(email).
 
 #### Request Example
 ```bash
-curl -X GET "http://localhost:3000/api/v1/auth/verify/example_token_p9879b098"
+curl -X GET "http://localhost:3000/api/v1/auth/activate-account/example_token_p9879b098"
 ```
 
 #### Response Example
 ```json
 {
   "response": {
-    "message": "account verified, procced to login",
+    "message": "account activated, procced to login",
     "status": 200
   }
 }
@@ -85,22 +85,22 @@ curl -X GET "http://localhost:3000/api/v1/auth/verify/example_token_p9879b098"
 **Note**: This endpoint is not to be used in the frontnd, It's a dynamic endpoint (link sent to the user's email), that changes based on the request.
 ---
 
-### 3. Resend Acount Confirmation Email
+### 3. Resend Acount activation link
 
-- **URL**: `/auth/resend-verification-link/{email}`
+- **URL**: `/auth/resend-activation-link/{email}`
 - **Method**: `GET`
-- **Description**: Resend verification link.
+- **Description**: Resend account activation link.
 
 #### Request Example
 ```bash
-curl -X POST "http://localhost:3000/api/v1/auth/resend-verification-link/example@gmail.com"
+curl -X POST "http://localhost:3000/api/v1/auth/resend-activation-link/example@gmail.com"
 ```
 
 #### Response Example
 ```json
 {
   "response": {
-    "message": "Verification link as  has been sent to your email",
+    "message": "Activation link as  has been sent to your email",
     "status": 200
   }
 }
@@ -143,13 +143,13 @@ curl -X POST "http://localhost:3000/api/v1/auth/login"
 
 ### 5. Request Password Reset Link
 
-- **URL**: `/auth/forgotten-password/password-request-password-reset-link/{email}`
-- **Method**: `POST`
+- **URL**: `/auth/forgotten-password/request-password-reset/{email}`
+- **Method**: `GET`
 - **Description**: Request password reset link.
 
 #### Request Example
 ```bash
-curl -X POST "http://localhost:3000/api/v1/auth/forgotten-password/password-request-password-reset-link/example@gmail.com"
+curl -X GET "http://localhost:3000/api/v1/auth/forgotten-password/request-password-reset/example@gmail.com"
 ```
 
 #### Response Example
@@ -167,55 +167,26 @@ curl -X POST "http://localhost:3000/api/v1/auth/forgotten-password/password-requ
 
 ### 6. Password Reset (email confirmation link)
 
-- **URL**: `/auth/forgotten-password/confirm-email/{token}`
-- **Method**: `POST`
-- **Description**: Email confirmation link.
-
-#### Request Example
-```bash
-curl -X POST "http://localhost:3000/api/v1/auth/forgotten-password/confirm-email/example_token_oiaobpay"
-```
-
-#### Response Example
-```json
-{
-  "response": {
-    "message": "email has been confirmed, another password reset link has been sent to your email",
-    "status": 200
-  }
-}
-```
-**Note**: This endpoint is not to be used in the frontnd, It's a dynamic endpoint (link sent to the user's email), that changes based on the request.
-
----
-
-### 7. Password Reset
-
 - **URL**: `/auth/forgotten-password/reset-password/{token}`
 - **Method**: `POST`
-- **Description**: Password Reset link.
+- **Description**: Reset password.
 
 #### Request Example
 ```bash
 curl -X POST "http://localhost:3000/api/v1/auth/forgotten-password/reset-password/example_token_oiaobpay"
 ```
 
-#### Response Body Example
-```json
-{
-  "password": "user_new_password"
-}
-```
-
 #### Response Example
 ```json
 {
   "response": {
-    "message": "password reset was successful",
+    "message": "your password reset was successful",
     "status": 200
   }
 }
 ```
+**Note**: This endpoint is not to be used in the frontnd, It's a dynamic endpoint (link sent to the user's email), that changes based on the request.
+
 
 ---
 
@@ -272,7 +243,31 @@ curl -X GET "http://localhost:3000/api/v1/user/password/reset-password" \
 
 ---
 
-### 3. Delete Account
+### 3. Logout User
+
+- **URL**: `/user/account/logout`
+- **Method**: `POST`
+- **Description**: logout user.
+
+#### Request Example
+```bash
+curl -X GET "http://localhost:3000/api/v1/user/account/logout" \
+     -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### Response Example
+```json
+{
+  "response": {
+    "message": "logoiut successful",
+    "status": 200
+  }
+}
+```
+
+---
+
+### 4. Delete Account
 
 - **URL**: `/user/account/delete-account`
 - **Method**: `POST`

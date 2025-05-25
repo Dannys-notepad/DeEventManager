@@ -1,12 +1,12 @@
 const router = require('express').Router()
 const passport = require('passport')
-const { registerSchema, loginSchema, resetPasswordSchema } = require('../middlewares/validator')
-const { registerUser, verifyUser, generateVerificationUrl, loginUser, oauth, generatePasswordResetLink, confirmEmail, resetPassword } = require('../controllers/authController')
+const { registerSchema, loginSchema, resetPasswordSchema } = require('./auth.validator')
+const { registerUser, activateAccount, generateActivationUrl, loginUser, oauth, generatePasswordResetLink, resetPassword } = require('./auth.controller')
 
 // NORMAL ACCESS ROUTES
 router.post('/register', registerSchema, registerUser)
-router.get('/verify/:token', verifyUser)
-router.get('/resend-verification-link/:email', generateVerificationUrl)
+router.get('/activate-account/:token', activateAccount)
+router.get('/resend-activation-link/:email', generateActivationUrl)
 router.post('/login', loginSchema, loginUser)
 
 
@@ -21,8 +21,8 @@ router.get('/google/callback', passport.authenticate('google', {
 
 
 // FORGOTTEM PASSEORD ROUTES
-router.post('/forgotten-password/request-password-reset-link/:email', generatePasswordResetLink)
-router.get('/forgotten-password/confirm-email/:token', confirmEmail)
+router.get('/forgotten-password/request-password-reset/:email', generatePasswordResetLink)
+
 router.post('/forgotten-password/reset-password/:token', resetPasswordSchema, resetPassword)
 
 

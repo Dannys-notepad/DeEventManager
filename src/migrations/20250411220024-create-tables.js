@@ -22,6 +22,9 @@ module.exports = {
       email: {
         type: Sequelize.STRING
       },
+      authProvider: {
+        type: Sequelize.ENUM('local', 'google')
+      },
       password: {
         type: Sequelize.STRING
       },

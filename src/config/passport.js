@@ -20,6 +20,7 @@ passport.use(new GoogleStrategy({
         email: profile.emails[0].value,
         firstName: profile.displayName.split(' ')[0],
         lastName: profile.displayName.split(' ')[1],
+        authProvider: 'google',
         emailVerified: true,
         accountStatus: 'active'
       });

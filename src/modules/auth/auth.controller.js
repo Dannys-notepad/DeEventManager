@@ -1,4 +1,4 @@
-const AuthService = require('../services/AuthService')
+const AuthService = require('./auth.service')
 
 // REGISTRATION CONTROLLER 
 exports.registerUser = async (req, res) => {
@@ -19,21 +19,21 @@ exports.registerUser = async (req, res) => {
 }
 
 
-// VERIFICATION CONTROLLER
-exports.verifyUser = async (req, res) => {
+// ACTIVATION CONTROLLER
+exports.activateAccount = async (req, res) => {
   try {
-    const verifyUser = await AuthService.verifyUser(req, res)
+    const activateAccount = await AuthService.activateAccount(req, res)
     //res.redirect('/api/v1/auth/login')
   } catch (e) {
     console.error(e)
     res.status(500).json({
-      message: 'error verifying user'
+      message: 'error activating account'
     })
   }
 }
 
-// GENERATE VERIFICATION URL CONTROLLER
-exports.generateVerificationUrl = async (req, res) => {
+// GENERATE ACTIVATION URL CONTROLLER
+exports.generateActivationUrl = async (req, res) => {
   try {
     const { email } = await req.params
     const data = {
@@ -107,10 +107,10 @@ exports.generatePasswordResetLink = async (req, res) => {
             host: req.get('host'),
             protocol: req.protocol
         }
-        const generatePasswordResetLink = await AuthService.generatePasswordResetLink(data)
-        res.status(generatePasswordResetLink.status).json({
+        const passwordResetUrl = await AuthService.passwordResetUrl(data)
+        res.status(passwordResetUrl.status).json({
             response: {
-                generatePasswordResetLink
+                passwordResetUrl
             }
         })
     } catch (e) {
@@ -125,20 +125,7 @@ exports.generatePasswordResetLink = async (req, res) => {
     
 }
 
-exports.confirmEmail = async (req, res) => {
-    try {
-        const confirmEmail = await AuthService.confirmEmail(req, res)
-    } catch (e) {
-        console.error(e)
-        res.status(500).json({
-            response: {
-                error: 'could not reset password',
-                status: 500
-            }
-        })
-    }   
-}
-
+// FINAL PASSWORD RESET CONTROLLER
 exports.resetPassword = async (req, res) => {
   try {
       const resetpassword = await AuthService.resetPassword(req, res)

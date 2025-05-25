@@ -1,9 +1,9 @@
-const Users = require('../models/Users')
-const mailTemp = require('../templates/mailTemplate')
-const sendEmail = require('../utils/mailer')
-const { encrypt, decrypt } = require('../utils/bcrypt')
+const Users = require('../../models/Users')
+const mailTemp = require('../../templates/mail.template')
+const sendEmail = require('../../services/mailer.service')
+const { encrypt, decrypt } = require('../../utils/bcrypt')
 const jwt = require('jsonwebtoken')
-const blackListedTokens = require('../models/blackListedTokens')
+const blackListedTokens = require('../../models/blackListedTokens')
 const jwtSecret = process.env.JWT_SECRET
 
 exports.dashboardContent = async (data) => {
@@ -92,17 +92,11 @@ exports.deleteAccount = async (data) => {
           status: 401
         }
       }
-
+      const deleteTokens = await blackListedTokens.destroy({ where: { userId }
+      })
       const deleteUser = await Users.destroy({
         where: { id: userId}
       })
-
-      // if(deleteUser !== 1){
-      //   return {
-      //     message: 'user user not found', 
-      //     status: 404
-      //   }
-      // }
 
       return {
         message: 'user account was successfully deleted', 

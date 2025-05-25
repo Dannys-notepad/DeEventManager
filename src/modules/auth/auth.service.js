@@ -1,9 +1,9 @@
-const Users = require('../models/Users')
-const oauth2Client = require('../config/passport')
-const mailTemp = require('../templates/mailTemplate')
-const sendEmail = require('../utils/mailer')
-const { encrypt, decrypt } = require('../utils/bcrypt')
+const Users = require('../../models/Users')
+const { activateAccountTemplate, resetPasswordTemplate } = require('../../templates/mail.template')
+const sendEmail = require('../../services/mailer.service')
+const { encrypt, decrypt } = require('../../utils/bcrypt')
 const jwt = require('jsonwebtoken')
+const generateResetCode = require('../../utils/generateResetCode')
 const jwtSecret = process.env.JWT_SECRET
 
 
@@ -26,25 +26,26 @@ exports.registerUser = async (data) => {
         const newUser = new Users({
           firstName,
           lastName,
+          authProvider: 'local',
           email,
           password: encryptedPassword,
         })
         
         const token = jwt.sign({ userId: newUser.id }, jwtSecret, { expiresIn: '5mins' })
-        const link = `${protocol}://${host}/api/v1/auth/verify/${token}`
+        const link = `${protocol}://${host}/api/v1/auth/activate-account/${token}`
         
         const mailFormat = {
           email: newUser.email,
-          html: mailTemp(link, newUser.firstName),
-          subject: 'ACCOUNT VERIFICATION'
+          html: activateAccountTemplate(link, newUser.firstName),
+          subject: 'ACCOUNT ACTIVATION'
         }
         
         await newUser.save()
-        //await sendEmail(mailFormat)
+        await sendEmail(mailFormat)
         return {
           message: 'account registered successfully, a verification mail has been sent to your email, follow intructions to verify your account',
           status: 201,
-          link
+          //link
         }
     } catch (e) {
         throw { error: e }
@@ -52,8 +53,8 @@ exports.registerUser = async (data) => {
 }
 
 
-// USER VERIFICATION SERVICE
-exports.verifyUser = async (req, res) => {
+// ACCOUNT ACTIVATION SERVICE
+exports.activateAccount = async (req, res) => {
   try {
     const { token } = await req.params;
 
@@ -73,34 +74,15 @@ exports.verifyUser = async (req, res) => {
           if(!decode){
             return res.status(400).json({
               response: {
-                message: 'this verification link is incorrect, check your email foolow instructions and try agian',
+                message: 'this activation link is incorrect, check your email foolow instructions and try agian',
                 status: 400
               }
             })
           }
 
-          const user = await Users.findOne({ where: {id: decode.userId}});
-          if (!user) {
-            return res.status(404).json({
-              response: {
-                message: 'Account not found',
-                status: 404
-              }
-            })
-          };
-
-          if (user.emailVerified) {
-            return res.json({
-              response: {
-                message: 'your account has been verified, proceed to login',
-                status: 200
-              }
-            })
-          };
-
           res.status(400).json({
             response: {
-              message: 'Link as expired, generate another verification link',
+              message: 'activation has expired, generate another activation link',
               status: 400,
             }
           })
@@ -120,7 +102,7 @@ exports.verifyUser = async (req, res) => {
         if (user.emailVerified) {
           return res.status(400).json({
             response: {
-              message: 'Account is already verified',
+              message: 'Account is already activated',
               status: 400
             }
           })
@@ -131,7 +113,7 @@ exports.verifyUser = async (req, res) => {
         await user.save();
         res.json({
           response: {
-            message: 'account verified proceed to login',
+            message: 'account activated proceed to login',
             status: 200
           }
         })
@@ -156,7 +138,7 @@ exports.verifyUser = async (req, res) => {
   }
 };
 
-// USER GENERATE VERIFICATION URL SERVICE
+// USER GENERATE ACTIVATION URL SERVICE
 exports.generateVerificationUrl = async (data) => {
   try {
     const { email, protocol, host } = await data
@@ -173,26 +155,26 @@ exports.generateVerificationUrl = async (data) => {
     if (existingEmail.emailVerified) {
       return res.json({
         response: {
-          message: 'your account has been verified, proceed to login',
+          message: 'your account has been activated, proceed to login',
           status: 200
         }
       })
     }
 
     const newToken = jwt.sign({ userId: existingEmail.id }, jwtSecret, { expiresIn: '5mins' });
-    const link = `${protocol}://${host}/api/v1/auth/verify/${newToken}`;
+    const link = `${protocol}://${host}/api/v1/auth/activate-account/${newToken}`;
 
     const mailFormat = {
       email: existingEmail.email,
-      html: sendEmail(link, existingEmail.fullName),
-      subject: 'RESEND: ACCOUNT VERIFICATION'
+      html: activateAccountTemplate(link, existingEmail.firstName),
+      subject: 'RESEND: ACCOUNT ACTIVATION'
     };
 
-    //await sendEmail(mailFormat);
+    await sendEmail(mailFormat);
     return {
-      message: 'Verification link has been sent to your email address',
+      message: 'Activation link has been sent to your email address',
       status: 200,
-      link
+      //link
     }
 
   } catch (e) {
@@ -217,20 +199,20 @@ exports.loginUser = async (data) => {
         if(!user.emailVerified){
           
           const token = jwt.sign({ userId: user.id }, jwtSecret, { expiresIn: '5mins' })
-          const link = `${protocol}://${host}/api/v1/auth/verify/${token}`
+          const link = `${protocol}://${host}/api/v1/auth/activate-account/${token}`
           
           const mailFormat = {
             email: user.email,
-            html: mailTemp(link, user.firstName),
-            subject: 'RE: ACCOUNT VERIFICATION'
+            html: activateAccountTemplate(link, user.firstName),
+            subject: 'RE: ACCOUNT ACTIVATION'
           }
           
-          //await sendEmail(mailFormat)
+          await sendEmail(mailFormat)
 
           return {
-            message: 'this account has not been verified yet, a verification email has been sent, follow the instructions to verify your account',
+            message: 'this account has not been activated yet, an activation email has been sent, follow the instructions to verify your account',
             status: 400,
-            link
+            //link
           }
         }
 
@@ -255,64 +237,8 @@ exports.loginUser = async (data) => {
 }
 
 
-// USER GOOGLE OAUTH SERVICE
-
-exports.oauth = async () => {
-  try {
-    const authUrl = oauth2Client.generateAuthUrl({
-      access_type: 'offline',
-      scope: ['profile', 'email']
-    })
-    return authUrl
-  } catch (e) {
-    throw { error:e }
-  }
-}
-
-exports.oauthCallback = async (data) => {
-  try {
-    const { tokens } = await oauth2Client.getToken(code)
-    oauth2Client.setCredentials(tokens)
-
-    // user credentials
-    const decoded = jwt.decode(tokens.id_token)
-    const firstName = decoded.name.split(' ')[0]
-    const lastName = decoded.name.split(' ')[1]
-    const email = decoded.email
-    const googleId = decoded.sub
-
-    // creating / saving user info in database
-    const existingEmail = await Users.findOne({where: { email }})
-
-    if(existingEmail){
-      return {
-        message: `user with email: ${email}, exists`,
-        status: 400
-      }
-    }
-
-    const newUser = new Users.create({
-      firstName,
-      lastName,
-      email,
-      googleId
-    })
-
-    const token = jwt.sign({ userId: newUser.id }, jwtSecret, { expiresIn: '24hrs' })
-
-    return {
-      message: 'user authenticated',
-      status: 201,
-      token
-    }
-  } catch (e) {
-    throw { error:e }
-  }
-}
-
-
-// USER FORGOTTEN PASSEORD RESET SERVICE
-exports.generatePasswordResetLink = async (data) => {
+// PASSEORD RESET URL SERVICE
+exports.passwordResetUrl = async (data) => {
   try {
       const { email, host, protocol } = await data
 
@@ -326,25 +252,25 @@ exports.generatePasswordResetLink = async (data) => {
 
       if(!existingUser.emailVerified){
         return {
-          message: 'account has not be verified yet, verify before reseting password',
+          message: 'account has not been activated yet, activate before reseting password',
           status: 400
         }
       }
 
       const newToken = jwt.sign({ userId: existingUser.id }, jwtSecret, { expiresIn: '5mins' });
-      const link = `${protocol}://${host}/api/v1/auth/forgotten-password/confirm-email/${newToken}`;
+      const link = `${protocol}://${host}/api/v1/auth/forgotten-password/reset-password/${newToken}`;
       
       const mailFormat = {
         email: existingUser.email,
-        html: sendEmail(link, existingUser.fullName),
-        subject: 'PASSWORD RESET'
+        html: resetPasswordTemplate(link, existingUser.firstName),
+        subject: 'RESET PASSWORD'
       };
       
-      //await sendEmail(mailFormat);
+      await sendEmail(mailFormat);
       return {
-        message: 'an email confirmation link has been sent to your email address',
+        message: 'a password reset email has been sent to your email address',
         status: 200,
-        link
+        //link
       }
 
   } catch (e) {
@@ -353,109 +279,8 @@ exports.generatePasswordResetLink = async (data) => {
   
 }
 
-// USER EMAIL CONFIRMATION FOR PASSWORD RESET SERVICE SERVICE
-exports.confirmEmail = async (req, res) => {
-  try {
-    const { token } = await req.params;
 
-    if (!token) {
-      return res.status(400).json({
-        response: {
-          message: 'Token not found',
-          status: 400
-        }
-      })
-    };
-
-    jwt.verify(token, jwtSecret, async (error, payload) => {
-      if (error) {
-        if (error instanceof jwt.JsonWebTokenError) {
-          const decode = jwt.decode(token);
-          if(!decode){
-            return res.status(400).json({
-              response: {
-                message: 'this email confirmation link is incorrect, check your email follow instructions and try agian',
-                status: 400
-              }
-            })
-          }
-
-          const user = await Users.findOne({ where: {id: decode.userId }});
-          if (!user) {
-            return res.status(404).json({
-              response: {
-                message: 'Account not found',
-                status: 404
-              }
-            })
-          };
-
-          if (!user.emailVerified) {
-            return res.json({
-              response: {
-                message: 'account has not be verified yet, verify before reseting password',
-                status: 400
-              }
-            })
-          };
-
-          res.status(400).json({
-            response: {
-              message: 'Link as expired, generate another password reset link',
-              status: 400,
-            }
-          })
-        }
-      } else {
-        const user = await Users.findOne({ where: {id: payload.userId}});
-
-        if (!user) {
-          return res.status(404).json({
-           response: {
-            message: 'Account not found',
-            status: 404
-          }
-          })
-        };
-
-        if (!user.emailVerified) {
-          user.emailVerified = true
-          user.accountStatus = 'active'
-        };
-
-        const newToken = jwt.sign({ userId: user.id }, jwtSecret, { expiresIn: '5mins' })
-        const resetLink = `${req.protocol}://${req.get('host')}/api/v1/auth/forgotten-password/reset-password/${newToken}`
-        await user.save()
-        res.json({
-          response: {
-            message: 'email verified proceed to password reset',
-            status: 200,
-            resetLink
-          }
-        })
-      }
-    })
-  } catch (error) {
-    console.log(error);
-    if (error instanceof jwt.JsonWebTokenError) {
-      return res.status(400).json({
-        response: {
-          error: 'Link as expired, generate another verification link',
-          status: 400
-        }
-      })
-    }
-    res.status(500).json({
-      response: {
-        error: 'Error Verifying User',
-        status: 500
-      }
-    })
-  }
-};
-
-
-// USER PASSWORD RESET SERVICE
+// USER FINAL PASSWORD RESET SERVICE
 exports.resetPassword = async (req, res) => {
   try {
     const { token } = await req.params;
@@ -483,16 +308,6 @@ exports.resetPassword = async (req, res) => {
               }
             })
           }
-
-          const user = await Users.findOne({ where: {id: decode.userId }});
-          if (!user) {
-            return res.status(404).json({
-              response: {
-                message: 'Account not found',
-                status: 404
-              }
-            })
-          };
 
           res.status(400).json({
             response: {
@@ -523,14 +338,7 @@ exports.resetPassword = async (req, res) => {
         await user.save()
         res.status(200).json({
           response: {
-            message: 'Password rest successful',
-            status: 200
-          }
-        })
-
-        res.json({
-          response: {
-            message: 'email verified proceed to password reset',
+            message: 'Password reset successful',
             status: 200
           }
         })
