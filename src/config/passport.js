@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const User = require('../models/Users');
+const newLocal = '../models/UserProfile';
+const UserProfile = require(newLocal);
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const SECRET_KEY = process.env.JWT_SECRET;
@@ -24,6 +26,13 @@ passport.use(new GoogleStrategy({
         emailVerified: true,
         accountStatus: 'active'
       });
+
+      const createUserProfile = await UserProfile.create({
+        userId: newUser.id,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        email: newUser.email
+      })
       const token = jwt.sign({ id: newUser.id }, SECRET_KEY, { expiresIn: '3600mins' });
       return cb(null, { user: newUser, token });
     } else {

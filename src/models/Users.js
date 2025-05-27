@@ -40,11 +40,6 @@ Users.init(
       type: DataTypes.STRING,
       allowNull: true
     },
-    profilePicture: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: 'null'
-    },
     emailVerified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false

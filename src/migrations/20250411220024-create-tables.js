@@ -31,9 +31,6 @@ module.exports = {
       googleId: {
         type: Sequelize.STRING
       },
-      profilePicture: {
-        type: Sequelize.STRING
-      },
       emailVerified: {
         type: Sequelize.BOOLEAN
       },
@@ -78,10 +75,71 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       }
+    }),
+
+    await queryInterface.createTable('UserProfile', {
+      userId: {
+        type: Sequelize.UUID,
+        references: {
+          model: "Users",
+          key: 'id'
+        },
+        allowNull: false
+      },
+      firstName: {
+        type: Sequelize.STRING,
+        references: {
+          model: "Users",
+          key: 'firstName'
+        },
+        allowNull: false
+      },
+      lastName: {
+        type: Sequelize.STRING,
+        references: {
+          model: "Users",
+          key: 'lastName'
+        },
+        allowNull: false
+      },
+      email: {
+        type: Sequelize.STRING,
+        references: {
+          model: "Users",
+          key: 'email'
+        },
+        allowNull: false
+      },
+      profilePicUrl: {
+        type: Sequelize.STRING,
+        allowNull: true
+       },
+      bio: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      tellphoneNumber: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      socialLinks: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      }
     });
   },
+
   
   async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('UserProfile')
     await queryInterface.dropTable('blackListedTokens'),
     await queryInterface.dropTable('Users')
   }

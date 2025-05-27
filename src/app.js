@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser')
 const connectDb = require('./utils/connect.db')
 const authRoute = require('./modules/auth/auth.route')
 const userRoute = require('./modules/user/user.route')
+const profileRoute = require('./modules/profile/profile.route')
 const logger = require('./middlewares/reqLogger')
 const app = express()
 
@@ -25,6 +26,7 @@ app.use(logger)
 app.use(cors())
 app.use('/api/v1/auth/', authRoute)
 app.use('/api/v1/user/', userRoute)
+app.use('/api/v1/user/profile', profileRoute)
 
 connectDb()
 

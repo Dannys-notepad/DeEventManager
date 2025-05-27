@@ -110,6 +110,13 @@ exports.activateAccount = async (req, res) => {
 
         user.emailVerified = true
         user.accountStatus = 'active'
+
+        const createUserProfile = await UserProfile.create({
+          userId: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email
+              })
         await user.save();
         res.json({
           response: {

@@ -15,43 +15,76 @@ Event.init(
         isUUID: 4,
       },
     },
-    firstName: {
+    userId: {
+      type: DataTypes.UUID,
+      references: {
+        model: "Users",
+        key: 'id'
+      }
+    },
+    title: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    lastName: {
+    description: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    email: {
+    categoryOrTag: {
       type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
-    },
-    authProvider: {
-      type: DataTypes.ENUM('local', 'google'),
       allowNull: false
     },
-    password: {
+    date: {
+      type: DataTypes.DATE,
+      allowNull: false
+    },
+    time: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     },
-    googleId: {
+    venueType: {
+      type: DataTypes.ENUM('physical', 'virtual', 'hybrid'),
+      allowNull: false
+    },
+    venueAccessMeduim: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     },
-    profilePicture: {
+    ticketType: {
+      type: DataTypes.ENUM('general', 'vip', 'earlybird'),
+      allowNull: false
+    },
+    ticketQuantity: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    ticketDiscountCode: {
       type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: 'null'
+      allowNull: false
     },
-    emailVerified: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
+    ticketSaleStartDate: {
+      type: DataTypes.DATE,
+      allowNull: false
     },
-    accountStatus: {
-      type: DataTypes.ENUM('active', 'inactive'),
-      defaultValue: 'inactive'
+    ticketSaleEndDate: {
+      type: DataTypes.DATE,
+      allowNull: false
+    },
+    ticketPrice: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    Media$Branding: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    Speakers$Performers: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    registrationRequirement: {
+      type: DataType.STRING,
+      allowNull: false
     },
     createdAt: {
       type: DataTypes.DATE,
