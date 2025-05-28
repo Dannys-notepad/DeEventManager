@@ -13,6 +13,9 @@ module.exports = {
           isUUID: 4,
         },
       },
+      username: {
+        type: Sequelize.STRING
+      },
       firstName: {
         type: Sequelize.STRING
       },
@@ -86,6 +89,14 @@ module.exports = {
         },
         allowNull: false
       },
+      username: {
+        type: Sequelize.STRING,
+        references: {
+          model: "Users",
+          key: 'username'
+        },
+        allowNull: true
+      },
       firstName: {
         type: Sequelize.STRING,
         references: {
@@ -124,6 +135,10 @@ module.exports = {
       },
       socialLinks: {
         type: Sequelize.STRING,
+        allowNull: true
+      },
+      profileIsComplete: {
+        type: Sequelize.BOOLEAN,
         allowNull: true
       },
       createdAt: {

@@ -13,6 +13,14 @@ UserProfile.init(
       },
       allowNull: false
     },
+    username: {
+      type: DataTypes.STRING,
+      references: {
+        model: "Users",
+        key: 'username'
+      },
+      allowNull: true
+    },
     firstName: {
       type: DataTypes.STRING,
       references: {
@@ -52,6 +60,11 @@ UserProfile.init(
     socialLinks: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+    profileIsComplete: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false
     },
     createdAt: {
       type: DataTypes.DATE,

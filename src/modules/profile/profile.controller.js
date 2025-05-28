@@ -20,9 +20,17 @@ exports.profileContent = async (req, res) => {
     }
 }
 
-exports.updateProfile = async (req, res) => {
+exports.completeProfile = async (req, res) => {
     try {
-        
+        const { email, profilePicUrl, bio, tellphoneNumber, socialLinks } = await req.body
+
+        const data = {
+            profilePicUrl, bio, tellphoneNumber, socialLinks, userId: res.user.id
+        }
+        const completeProfile = await ProfileService.completeProfile(data)
+        res.status(completeProfile.status).json({
+            response: completeProfile
+        })
     } catch (e) {
         console.log(e)
         res.status(500).json({

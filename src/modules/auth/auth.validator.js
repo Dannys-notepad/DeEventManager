@@ -5,6 +5,7 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@
 // SIGNUP SCHEMA
 exports.registerSchema = async (req, res, next) => {
   const schema = Joi.object({
+    username: Joi.string().trim().min(3).max(50),
     firstName: Joi.string().trim().min(3).max(50).required(),
     lastName: Joi.string().trim().min(3).max(50).required(),
     email: Joi.string().trim().email().required(),
@@ -27,7 +28,7 @@ exports.registerSchema = async (req, res, next) => {
 // LOGIN SCHEMA
 exports.loginSchema = async (req, res, next) => {
   const schema = Joi.object({
-    email: Joi.string().trim().email().required(),
+    username$email: Joi.string().trim().required(),
     password: Joi.string().required()
   })
   

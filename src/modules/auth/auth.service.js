@@ -12,6 +12,10 @@ exports.registerUser = async (data) => {
     try {
         const { protocol, host } = await data
         const { firstName, lastName, email, password } = await data.body
+        let username = null
+        if(data.body.username !== undefined){
+          username = data.body.username
+        }
         
         const existingEmail = await Users.findOne({ where: { email: email.toLowerCase() }})
         
@@ -24,6 +28,7 @@ exports.registerUser = async (data) => {
         
         const encryptedPassword = await encrypt(password)
         const newUser = new Users({
+          username,
           firstName,
           lastName,
           authProvider: 'local',
@@ -193,9 +198,18 @@ exports.generateVerificationUrl = async (data) => {
 // USER LOGIN SERVICE
 exports.loginUser = async (data) => {
     try {
-        const { email, password, protocol, host } = await data
+        const { username$email, password, protocol, host } = await data
 
-        const user = await Users.findOne({where: { email }})
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isEmail = emailRegex.test(username$email)
+
+        let user
+        if(isEmail){
+          user = await Users.findOne({where: { email: username$email }})
+        }else{
+          user = await Users.findOne({where: { username: username$email }})
+        }
+
         if(!user){
           return {
             message: 'account not found',
@@ -261,6 +275,12 @@ exports.passwordResetUrl = async (data) => {
         return {
           message: 'account has not been activated yet, activate before reseting password',
           status: 400
+        }
+      }
+
+      if(existingUser.authProvider !== 'local'){
+        return {
+          message: 'can\'t generate a password reset link for this account because, this account used google signin method'
         }
       }
 

@@ -49,6 +49,12 @@ exports.resetPassword = async (data) => {
             status: 400
           }
         }
+        
+        if(user.authProvider !== 'local'){
+          return {
+            message: 'can\'t generate a password reset link for this account because, this account used google signin method'
+          }
+        }
 
         const confirmPassword = await decrypt(oldPassword, user.password)
         if(!confirmPassword){

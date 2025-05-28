@@ -1,10 +1,10 @@
 const router = require('express').Router()
 const authorizaton = require('../../middlewares/authorization')
-const { profileContents, updateProfile } = require('./profile.controller')
+const { profileContent, completeProfile } = require('./profile.controller')
 
 router.use(authorizaton)
 
-router.get('/', profileContents)
-router.post('/update', updateProfile)
+router.get('/', profileContent)
+router.post('/complete', completeProfile)
 
 module.exports = router

@@ -15,6 +15,10 @@ Users.init(
         isUUID: 4,
       },
     },
+    username: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     firstName: {
       type: DataTypes.STRING,
       allowNull: false
