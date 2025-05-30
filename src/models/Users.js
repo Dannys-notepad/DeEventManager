@@ -76,4 +76,12 @@ Users.associate = (models) => {
   return Users;
 };
 
+Users.associate = (models) => {
+  Users.hasOne(models.UserProfile, {
+    foreignKey: 'userId',
+    as: 'profile'
+  });
+};
+
+
 module.exports = Users

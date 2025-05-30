@@ -1,5 +1,5 @@
-const { Sequelize, DataTypes,  Model} = require('sequelize')
-const sequelize = require('../config/sequelize.db')
+const { Sequelize, DataTypes, Model } = require('sequelize');
+const sequelize = require('../config/sequelize.db');
 
 class UserProfile extends Model {}
 
@@ -8,40 +8,8 @@ UserProfile.init(
     userId: {
       type: DataTypes.UUID,
       references: {
-        model: "Users",
+        model: 'Users',
         key: 'id'
-      },
-      allowNull: false
-    },
-    username: {
-      type: DataTypes.STRING,
-      references: {
-        model: "Users",
-        key: 'username'
-      },
-      allowNull: true
-    },
-    firstName: {
-      type: DataTypes.STRING,
-      references: {
-        model: "Users",
-        key: 'firstName'
-      },
-      allowNull: false
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      references: {
-        model: "Users",
-        key: 'lastName'
-      },
-      allowNull: false
-    },
-    email: {
-      type: DataTypes.STRING,
-      references: {
-        model: "Users",
-        key: 'email'
       },
       allowNull: false
     },
@@ -53,7 +21,7 @@ UserProfile.init(
       type: DataTypes.STRING,
       allowNull: true
     },
-    tellphoneNumber: {
+    telephoneNumber: {
       type: DataTypes.STRING,
       allowNull: true
     },
@@ -68,11 +36,13 @@ UserProfile.init(
     },
     createdAt: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: false,
+      defaultValue: DataTypes.NOW
     },
     updatedAt: {
-      type: DataTypes.NOW,
-      allowNull: false
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW
     }
   },
   {
@@ -80,11 +50,14 @@ UserProfile.init(
     modelName: 'UserProfile',
     tableName: 'UserProfile'
   }
-)
+);
 
+// Association
 UserProfile.associate = (models) => {
-    UserProfile.belongsTo(models.Users, { foreignKey: 'userId' });
-  return UserProfile;
+  UserProfile.belongsTo(models.Users, {
+    foreignKey: 'userId',
+    as: 'user'
+  });
 };
 
-module.exports = UserProfile
+module.exports = UserProfile;

@@ -89,38 +89,6 @@ module.exports = {
         },
         allowNull: false
       },
-      username: {
-        type: Sequelize.STRING,
-        references: {
-          model: "Users",
-          key: 'username'
-        },
-        allowNull: true
-      },
-      firstName: {
-        type: Sequelize.STRING,
-        references: {
-          model: "Users",
-          key: 'firstName'
-        },
-        allowNull: false
-      },
-      lastName: {
-        type: Sequelize.STRING,
-        references: {
-          model: "Users",
-          key: 'lastName'
-        },
-        allowNull: false
-      },
-      email: {
-        type: Sequelize.STRING,
-        references: {
-          model: "Users",
-          key: 'email'
-        },
-        allowNull: false
-      },
       profilePicUrl: {
         type: Sequelize.STRING,
         allowNull: true
@@ -154,7 +122,7 @@ module.exports = {
 
   
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('UserProfile')
+    await queryInterface.dropTable('UserProfile'),
     await queryInterface.dropTable('blackListedTokens'),
     await queryInterface.dropTable('Users')
   }
