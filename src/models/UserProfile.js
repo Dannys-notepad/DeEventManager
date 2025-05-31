@@ -5,8 +5,9 @@ class UserProfile extends Model {}
 
 UserProfile.init(
   {
-    userId: {
+    id: {
       type: DataTypes.UUID,
+      primaryKey: true,
       references: {
         model: 'Users',
         key: 'id'
@@ -21,7 +22,7 @@ UserProfile.init(
       type: DataTypes.STRING,
       allowNull: true
     },
-    telephoneNumber: {
+    tellphoneNumber: {
       type: DataTypes.STRING,
       allowNull: true
     },
@@ -55,9 +56,8 @@ UserProfile.init(
 // Association
 UserProfile.associate = (models) => {
   UserProfile.belongsTo(models.Users, {
-    foreignKey: 'userId',
-    as: 'user'
-  });
+    foreignKey: 'userId' });
+  return UserProfile
 };
 
 module.exports = UserProfile;

@@ -81,10 +81,10 @@ module.exports = {
     }),
 
     await queryInterface.createTable('UserProfile', {
-      userId: {
+      id: {
         type: Sequelize.UUID,
         references: {
-          model: "Users",
+          model: 'Users',
           key: 'id'
         },
         allowNull: false

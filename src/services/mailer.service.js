@@ -23,7 +23,7 @@ module.exports = async (recipient) => {
     console.log('Email sent to:', recipient.email);
     return info;
   } catch (error) {
-    console.error('Email failed:', recipient.email, error.message);
-    throw error; 
+    console.log('Email failed:', recipient.email, error.message);
+    return `mail not sent` 
   }
 };

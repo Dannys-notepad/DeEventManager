@@ -2,10 +2,10 @@ const newLocal = '../../models/UserProfile'
 const UserProfile = require(newLocal)
 
 
-const returnProfileContent = async (data) => {
+exports.returnProfileContent = async (data) => {
     try {
-        const userId = await data
-        const profileContent = await UserProfile.findOne({ where: {  userId }})
+        const id = await data
+        const profileContent = await UserProfile.findOne({ where: {  id }})
         if(!profileContent){
             return {
                 message: 'profile/user do not exist',
@@ -13,7 +13,7 @@ const returnProfileContent = async (data) => {
             }
         }
         return {
-            data: profileContent,
+            profile: profileContent,
             status: 200
         }
     } catch (e) {
@@ -22,11 +22,11 @@ const returnProfileContent = async (data) => {
     }
 }
 
-const completeProfile = async (data) => {
+exports.completeProfile = async (data) => {
     try {
-        const { userId, profilePicUrl, bio, tellphoneNumber, socialLinks } = await data
+        const { id, profilePicUrl, bio, tellphoneNumber, socialLinks } = await data
 
-        const userProfile = await UserProfile.findOne({ where: {  userId }})
+        const userProfile = await UserProfile.findOne({ where: { id }})
         if(!userProfile){
             return {
                 message: 'profile/user do not exist',
@@ -42,11 +42,11 @@ const completeProfile = async (data) => {
 
 
         return {
-            data: profileContent,
+            message: 'profile updated successfully',
+            profile: userProfile,
             status: 200
         }
     } catch (e) {
-        console.log(e)
         throw new Error(e)
     }
 }

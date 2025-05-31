@@ -1,4 +1,5 @@
 const Users = require('../../models/Users')
+const UserProfile = require('../../models/userProfile')
 const { activateAccountTemplate, resetPasswordTemplate } = require('../../templates/mail.template')
 const sendEmail = require('../../services/mailer.service')
 const { encrypt, decrypt } = require('../../utils/bcrypt')
@@ -46,11 +47,11 @@ exports.registerUser = async (data) => {
         }
         
         await newUser.save()
-        await sendEmail(mailFormat)
+        // await sendEmail(mailFormat)
         return {
           message: 'account registered successfully, a verification mail has been sent to your email, follow intructions to verify your account',
           status: 201,
-          //link
+          link
         }
     } catch (e) {
         throw { error: e }
@@ -116,13 +117,9 @@ exports.activateAccount = async (req, res) => {
         user.emailVerified = true
         user.accountStatus = 'active'
 
-        const createUserProfile = await UserProfile.create({
-          userId: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email
-              })
+        const createUserProfile = new UserProfile({ id: user.id })
         await user.save();
+        await createUserProfile.save()
         res.json({
           response: {
             message: 'account activated proceed to login',
@@ -150,7 +147,7 @@ exports.activateAccount = async (req, res) => {
   }
 };
 
-// USER GENERATE ACTIVATION URL SERVICE
+// GENERATE ACTIVATION URL SERVICE
 exports.generateVerificationUrl = async (data) => {
   try {
     const { email, protocol, host } = await data
@@ -165,12 +162,10 @@ exports.generateVerificationUrl = async (data) => {
     }
 
     if (existingEmail.emailVerified) {
-      return res.json({
-        response: {
-          message: 'your account has been activated, proceed to login',
-          status: 200
-        }
-      })
+      return {
+        message: 'your account has been activated, proceed to login',
+        status: 200
+      }
     }
 
     const newToken = jwt.sign({ userId: existingEmail.id }, jwtSecret, { expiresIn: '5mins' });
@@ -182,11 +177,11 @@ exports.generateVerificationUrl = async (data) => {
       subject: 'RESEND: ACCOUNT ACTIVATION'
     };
 
-    await sendEmail(mailFormat);
+    // await sendEmail(mailFormat);
     return {
       message: 'Activation link has been sent to your email address',
       status: 200,
-      //link
+      link
     }
 
   } catch (e) {
@@ -228,12 +223,12 @@ exports.loginUser = async (data) => {
             subject: 'RE: ACCOUNT ACTIVATION'
           }
           
-          await sendEmail(mailFormat)
+          // await sendEmail(mailFormat)
 
           return {
             message: 'this account has not been activated yet, an activation email has been sent, follow the instructions to verify your account',
             status: 400,
-            //link
+            link
           }
         }
 
@@ -293,11 +288,11 @@ exports.passwordResetUrl = async (data) => {
         subject: 'RESET PASSWORD'
       };
       
-      await sendEmail(mailFormat);
+      // await sendEmail(mailFormat);
       return {
         message: 'a password reset email has been sent to your email address',
         status: 200,
-        //link
+        link
       }
 
   } catch (e) {
