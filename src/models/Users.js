@@ -78,7 +78,7 @@ Users.associate = (models) => {
 
 Users.associate = (models) => {
   Users.hasOne(models.UserProfile, {
-    foreignKey: 'userId',
+    foreignKey: 'id',
     as: 'profile'
   });
 };

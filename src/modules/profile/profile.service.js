@@ -1,52 +1,104 @@
+const Users = require('../../models/Users')
 const newLocal = '../../models/UserProfile'
 const UserProfile = require(newLocal)
 
 
 exports.returnProfileContent = async (data) => {
-    try {
-        const id = await data
-        const profileContent = await UserProfile.findOne({ where: {  id }})
-        if(!profileContent){
-            return {
-                message: 'profile/user do not exist',
-                status: 404
-            }
-        }
-        return {
-            profile: profileContent,
-            status: 200
-        }
-    } catch (e) {
-        console.log(e)
-        throw new Error(e)
+  try {
+    const userId = await data; 
+    const user = await Users.findOne({
+      where: { id: userId },
+      attributes: ['firstName', 'lastName', 'email', 'username']
+    });
+
+    if (!user) {
+      return {
+        message: 'User does not exist',
+        status: 404
+      };
     }
+
+    const profile = await UserProfile.findOne({
+      where: { id: userId } 
+    });
+
+    if (!profile) {
+      return {
+        message: 'User profile does not exist',
+        status: 404
+      };
+    }
+
+    const profileContent = {
+      ...profile.get({ plain: true }),
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email
+    };
+
+    return {
+      profileContent,
+      status: 200
+    };
+
+  } catch (e) {
+    console.error(e);
+    throw new Error(e);
+  }
 }
+
 
 exports.completeProfile = async (data) => {
-    try {
-        const { id, profilePicUrl, bio, tellphoneNumber, socialLinks } = await data
+  try {
+    const { id, profilePicUrl, bio, tellphoneNumber, socialLinks } = await data;
 
-        const userProfile = await UserProfile.findOne({ where: { id }})
-        if(!userProfile){
-            return {
-                message: 'profile/user do not exist',
-                status: 404
-            }
-        }
+    const user = await Users.findOne({
+      where: { id },
+      attributes: ['firstName', 'lastName', 'email', 'username']
+    });
 
-        userProfile.tellphoneNumber = tellphoneNumber
-        userProfile.profilePicUrl = profilePicUrl
-        userProfile.socialLinks = socialLinks
-        userProfile.bio = bio
-        await userProfile.save()
-
-
-        return {
-            message: 'profile updated successfully',
-            profile: userProfile,
-            status: 200
-        }
-    } catch (e) {
-        throw new Error(e)
+    if (!user) {
+      return {
+        message: 'User does not exist',
+        status: 404
+      };
     }
-}
+
+    const userProfile = await UserProfile.findOne({
+      where: { id }
+    });
+
+    if (!userProfile) {
+      return {
+        message: 'User profile does not exist',
+        status: 404
+      };
+    }
+
+    userProfile.tellphoneNumber = tellphoneNumber;
+    userProfile.profilePicUrl = profilePicUrl;
+    userProfile.socialLinks = socialLinks;
+    userProfile.bio = bio;
+    userProfile.profileIsComplete = true;
+    await userProfile.save();
+
+    const profile = {
+      ...userProfile.get({ plain: true }),
+      firstName: user.firstName,
+      lastName: user.lastName,
+      username: user.username,
+      email: user.email
+    };
+
+    return {
+      message: 'Profile updated successfully',
+      profile,
+      status: 200
+    };
+
+  } catch (e) {
+    console.error(e);
+    throw new Error(e);
+  }
+};
