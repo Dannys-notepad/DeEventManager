@@ -49,13 +49,15 @@ exports.returnProfileContent = async (data) => {
 }
 
 
-exports.completeProfile = async (data) => {
+exports.updateProfile = async (data) => {
   try {
-    const { id, profilePicUrl, bio, tellphoneNumber, socialLinks } = await data;
+    const { id, profilePicUrl } = await data;
+
+    const { bio, tellphoneNumber, socialLinks } = await data.body;
 
     const user = await Users.findOne({
-      where: { id },
-      attributes: ['firstName', 'lastName', 'email', 'username']
+      where: { id }/*,
+      attributes: ['firstName', 'lastName', 'email', 'username']*/
     });
 
     if (!user) {
@@ -63,6 +65,11 @@ exports.completeProfile = async (data) => {
         message: 'User does not exist',
         status: 404
       };
+    }
+
+    if(user.username === null && data.body.username){
+      user.username = data.body.username
+      await user.save()
     }
 
     const userProfile = await UserProfile.findOne({

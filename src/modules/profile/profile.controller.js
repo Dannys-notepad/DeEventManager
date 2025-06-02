@@ -20,18 +20,21 @@ exports.profileContent = async (req, res) => {
     }
 }
 
-exports.completeProfile = async (req, res) => {
+exports.updateProfile = async (req, res) => {
     try {
-        const { profilePicUrl, bio, tellphoneNumber, socialLinks } = await req.body
+        const body = await req.body
 
         const id = await res.user.id
 
+        const uploadedFile = req.file;
+        const profilePicUrl = uploadedFile ? `/uploads/${uploadedFile.filename}` : null;
+
         const data = {
-            profilePicUrl, bio, tellphoneNumber, socialLinks, id
+            body, profilePicUrl, id
         }
-        const completeProfile = await ProfileService.completeProfile(data)
-        res.status(completeProfile.status).json({
-            response: completeProfile
+        const updateProfile = await ProfileService.updateProfile(data)
+        res.status(updateProfile.status).json({
+            response: updateProfile
         })
     } catch (e) {
         console.log(e)

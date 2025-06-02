@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const env = require('../config/env')
 
 module.exports = async (recipient) => {
   try {
@@ -8,13 +9,13 @@ module.exports = async (recipient) => {
       port: 587,
       secure: false,
       auth: {
-        user: process.env.SMTP_USERNAME,
-        pass: process.env.SMTP_PASSWORD,
+        user: env.SMTP_USERNAME,
+        pass: env.SMTP_PASSWORD,
       },
     });
 
     const info = await transporter.sendMail({
-      from: `De Event Manager <${process.env.SMTP_USERNAME}>`,
+      from: `De Event Manager <${env.SMTP_USERNAME}>`,
       to: recipient.email,
       subject: recipient.subject,
       html: recipient.html,

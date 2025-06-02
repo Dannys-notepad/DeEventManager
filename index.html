@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile Upload with Token</title>
+</head>
+<body>
+  <h2>Upload Profile (with Bearer Token)</h2>
+
+  <form id="profileForm">
+    <label for="profilePic">Profile Picture:</label><br>
+    <input type="file" name="profilePic" id="profilePic" required><br><br>
+
+    <label for="bio">Bio:</label><br>
+    <input type="text" name="bio" id="bio"><br><br>
+
+    <label for="tellphoneNumber">Telephone Number:</label><br>
+    <input type="text" name="tellphoneNumber" id="tellphoneNumber"><br><br>
+
+    <label for="socialLinks">Social Links:</label><br>
+    <input type="text" name="socialLinks" id="socialLinks"><br><br>
+
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('profileForm');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch('http://localhost:3000/api/v1/user/profile/update', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwODBjNzUyZS0xMzNiLTQzMjQtYTkwMS1mOGY2NGYwOGNjNzYiLCJpYXQiOjE3NDg5MDM4OTcsImV4cCI6MTc0OTA3NjY5N30.9JhIg13-pcXmBJWBAt5dNe2gwYGsqjuQM4B_rblGvJg'
+            // Do NOT set Content-Type manually! Let fetch handle it with FormData.
+          },
+          body: formData
+        });
+
+        const result = await response.json();
+        console.log(result);
+        //alert(`Status: ${response.status}\nMessage: ${result.message}`);
+      } catch (error) {
+        console.error(error);
+        alert('Upload failed, check the console.');
+      }
+    });
+  </script>
+
+</body>
+</html>

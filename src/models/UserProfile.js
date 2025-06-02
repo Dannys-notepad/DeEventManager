@@ -56,7 +56,7 @@ UserProfile.init(
 // Association
 UserProfile.associate = (models) => {
   UserProfile.belongsTo(models.Users, {
-    foreignKey: 'id', as: 'user' });
+    foreignKey: 'id'});
   return UserProfile
 };
 

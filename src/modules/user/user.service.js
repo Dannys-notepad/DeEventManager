@@ -1,10 +1,11 @@
+const env = require('../../config/env')
 const Users = require('../../models/Users')
 const mailTemp = require('../../templates/mail.template')
 const sendEmail = require('../../services/mailer.service')
 const { encrypt, decrypt } = require('../../utils/bcrypt')
 const jwt = require('jsonwebtoken')
 const blackListedTokens = require('../../models/blackListedTokens')
-const jwtSecret = process.env.JWT_SECRET
+const jwtSecret = env.JWT_SECRET
 
 exports.dashboardContent = async (data) => {
     try {

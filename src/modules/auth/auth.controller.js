@@ -56,9 +56,9 @@ exports.generateActivationUrl = async (req, res) => {
 // LOGIN CONTROLLER 
 exports.loginUser = async (req, res) => {
   try {
-    const { username$email, password } = await req.body
+    const { EmailOrUsername, password } = await req.body
     const data = await {
-      username$email,
+      EmailOrUsername,
       password,
       protocol: req.protocol,
       host: req.get('host')

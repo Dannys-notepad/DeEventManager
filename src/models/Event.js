@@ -60,7 +60,7 @@ Event.init(
     },
     ticketDiscountCode: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     ticketSaleStartDate: {
       type: DataTypes.DATE,
@@ -71,10 +71,6 @@ Event.init(
       allowNull: false
     },
     ticketPrice: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    Media$Branding: {
       type: DataTypes.STRING,
       allowNull: false
     },

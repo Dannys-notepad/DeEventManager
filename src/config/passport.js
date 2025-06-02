@@ -1,16 +1,14 @@
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const env = require('./env')
 const User = require('../models/Users');
 const newLocal = '../models/UserProfile';
 const UserProfile = require(newLocal);
-const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const SECRET_KEY = process.env.JWT_SECRET;
 
 passport.use(new GoogleStrategy({
-  clientID: CLIENT_ID,
-  clientSecret: CLIENT_SECRET,
+  clientID: env.GOOGLE_CLIENT_ID,
+  clientSecret: env.GOOGLE_CLIENT_SECRET,
   callbackURL: '/api/v1/auth/google/callback',
   scope: ['profile', 'email'],
 }, async (accessToken, refreshToken, profile, cb) => {
@@ -33,10 +31,10 @@ passport.use(new GoogleStrategy({
         lastName: newUser.lastName,
         email: newUser.email
       })
-      const token = jwt.sign({ id: newUser.id }, SECRET_KEY, { expiresIn: '3600mins' });
+      const token = jwt.sign({ id: newUser.id }, env.JWT_SECRET, { expiresIn: '3600mins' });
       return cb(null, { user: newUser, token });
     } else {
-      const token = jwt.sign({ id: user.id }, SECRET_KEY, { expiresIn: '3600mins' });
+      const token = jwt.sign({ id: user.id }, env.JWT_SECRET, { expiresIn: '3600mins' });
       return cb(null, { user, token });
     }
   } catch (err) {

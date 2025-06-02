@@ -1,18 +1,13 @@
-require('dotenv').config()
-const DB = process.env.DB_NAME
-const USERNAME = process.env.DB_USER
-const PASSWORD = process.env.DB_PASS
-const HOST = process.env.DB_HOST
-const DIALECT = process.env.DB_DIALECT
+const env = require('./env')
 
 module.exports =
 {
   development: {
-    username: 'root',
-    password: '',
-    database: 'DeEventManager',
-    host: 'localhost',
-    dialect: 'mysql'
+    username: env.USERNAME,
+    password: env.PASSWORD,
+    database: env.DB,
+    host: env.HOST,
+    dialect: env.DIALECT
   },
   test: {
     "username": "root",

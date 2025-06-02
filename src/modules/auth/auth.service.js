@@ -1,26 +1,23 @@
+const jwt = require('jsonwebtoken')
+const env = require('../../config/env')
 const Users = require('../../models/Users')
 const UserProfile = require('../../models/userProfile')
 const { activateAccountTemplate, resetPasswordTemplate } = require('../../templates/mail.template')
 const sendEmail = require('../../services/mailer.service')
 const { encrypt, decrypt } = require('../../utils/bcrypt')
-const jwt = require('jsonwebtoken')
 const generateResetCode = require('../../utils/generateResetCode')
-const jwtSecret = process.env.JWT_SECRET
+
 
 
 // USER REGISTRATION SERVICE
 exports.registerUser = async (data) => {
     try {
         const { protocol, host } = await data
-        const { firstName, lastName, email, password } = await data.body
-        let username = null
-        if(data.body.username !== undefined){
-          username = data.body.username
-        }
+        const { username, firstName, lastName, email, password } = await data.body
         
         const existingEmail = await Users.findOne({ where: { email: email.toLowerCase() }})
         
-        if(existingEmail /*!== null && existingEmail.length === 1*/){
+        if(existingEmail){
             return {
                 message: `An account with email: ${email} already exists`,
                 status: 400
@@ -37,12 +34,12 @@ exports.registerUser = async (data) => {
           password: encryptedPassword,
         })
         
-        const token = jwt.sign({ userId: newUser.id }, jwtSecret, { expiresIn: '5mins' })
+        const token = jwt.sign({ userId: newUser.id }, env.JWT_SECRET, { expiresIn: '5mins' })
         const link = `${protocol}://${host}/api/v1/auth/activate-account/${token}`
         
         const mailFormat = {
           email: newUser.email,
-          html: activateAccountTemplate(link, newUser.firstName),
+          html: activateAccountTemplate(link, newUser.username),
           subject: 'ACCOUNT ACTIVATION'
         }
         
@@ -73,7 +70,7 @@ exports.activateAccount = async (req, res) => {
       })
     };
 
-    jwt.verify(token, jwtSecret, async (error, payload) => {
+    jwt.verify(token, env.JWT_SECRET, async (error, payload) => {
       if (error) {
         if (error instanceof jwt.JsonWebTokenError) {
           const decode = jwt.decode(token);
@@ -168,12 +165,12 @@ exports.generateVerificationUrl = async (data) => {
       }
     }
 
-    const newToken = jwt.sign({ userId: existingEmail.id }, jwtSecret, { expiresIn: '5mins' });
+    const newToken = jwt.sign({ userId: existingEmail.id }, env.JWT_SECRET, { expiresIn: '5mins' });
     const link = `${protocol}://${host}/api/v1/auth/activate-account/${newToken}`;
 
     const mailFormat = {
       email: existingEmail.email,
-      html: activateAccountTemplate(link, existingEmail.firstName),
+      html: activateAccountTemplate(link, existingEmail.username),
       subject: 'RESEND: ACCOUNT ACTIVATION'
     };
 
@@ -193,16 +190,16 @@ exports.generateVerificationUrl = async (data) => {
 // USER LOGIN SERVICE
 exports.loginUser = async (data) => {
     try {
-        const { username$email, password, protocol, host } = await data
+        const { EmailOrUsername, password, protocol, host } = await data
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const isEmail = emailRegex.test(username$email)
+        const isEmail = emailRegex.test(EmailOrUsername)
 
         let user
         if(isEmail){
-          user = await Users.findOne({where: { email: username$email }})
+          user = await Users.findOne({where: { email: EmailOrUsername }})
         }else{
-          user = await Users.findOne({where: { username: username$email }})
+          user = await Users.findOne({where: { username: EmailOrUsername }})
         }
 
         if(!user){
@@ -214,12 +211,12 @@ exports.loginUser = async (data) => {
         
         if(!user.emailVerified){
           
-          const token = jwt.sign({ userId: user.id }, jwtSecret, { expiresIn: '5mins' })
+          const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, { expiresIn: '5mins' })
           const link = `${protocol}://${host}/api/v1/auth/activate-account/${token}`
           
           const mailFormat = {
             email: user.email,
-            html: activateAccountTemplate(link, user.firstName),
+            html: activateAccountTemplate(link, user.username),
             subject: 'RE: ACCOUNT ACTIVATION'
           }
           
@@ -241,7 +238,7 @@ exports.loginUser = async (data) => {
           }
         }
         //console.log(confirmPassword)
-        const token = jwt.sign({ userId: user.id }, jwtSecret, { expiresIn: '48hrs'})
+        const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, { expiresIn: '48hrs'})
         return {
           message: 'User logged in successfully',
           status: 200,
@@ -279,12 +276,12 @@ exports.passwordResetUrl = async (data) => {
         }
       }
 
-      const newToken = jwt.sign({ userId: existingUser.id }, jwtSecret, { expiresIn: '5mins' });
+      const newToken = jwt.sign({ userId: existingUser.id }, env.JWT_SECRET, { expiresIn: '5mins' });
       const link = `${protocol}://${host}/api/v1/auth/forgotten-password/reset-password/${newToken}`;
       
       const mailFormat = {
         email: existingUser.email,
-        html: resetPasswordTemplate(link, existingUser.firstName),
+        html: resetPasswordTemplate(link, existingUser.username),
         subject: 'RESET PASSWORD'
       };
       
@@ -318,7 +315,7 @@ exports.resetPassword = async (req, res) => {
       })
     };
 
-    jwt.verify(token, jwtSecret, async (error, payload) => {
+    jwt.verify(token, env.JWT_SECRET, async (error, payload) => {
       if (error) {
         if (error instanceof jwt.JsonWebTokenError) {
           const decode = jwt.decode(token);

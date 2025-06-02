@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const Users = require('../models/Users.js');
+const env = require('../config/env')
+const Users = require('../models/Users');
 const blackListedTokens = require('../models/blackListedTokens');
 
 module.exports = async (req, res, next) => {
@@ -21,7 +22,7 @@ module.exports = async (req, res, next) => {
       })
     }
 
-    jwt.verify(token, process.env.JWT_SECRET, async (error, payload) => {
+    jwt.verify(token, env.JWT_SECRET, async (error, payload) => {
       if (error) {
         return res.status(401).json({ 
           response: {

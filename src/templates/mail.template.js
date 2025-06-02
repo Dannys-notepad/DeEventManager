@@ -1,4 +1,4 @@
-exports.activateAccountTemplate = (link, firstName) => {
+exports.activateAccountTemplate = (link, username) => {
   return `
   <!DOCTYPE html>
 <html lang="en">
@@ -85,7 +85,7 @@ exports.activateAccountTemplate = (link, firstName) => {
         </div>
         
         <div class="content">
-            <p>Hello <span class="highlight">${firstName}</span>,</p>
+            <p>Hello <span class="highlight">${username}</span>,</p>
             
             <p>Welcome to the De Event Manager! 🎉 We're thrilled to have you join our community.</p>
             
@@ -111,7 +111,7 @@ exports.activateAccountTemplate = (link, firstName) => {
   `
 }
 
-exports.resetPasswordTemplate = (link, firstName) => {
+exports.resetPasswordTemplate = (link, username) => {
   return `
   <!DOCTYPE html>
 <html lang="en">
@@ -198,7 +198,7 @@ exports.resetPasswordTemplate = (link, firstName) => {
         </div>
         
         <div class="content">
-            <p>Hello <span class="highlight">${firstName}</span>,</p>
+            <p>Hello <span class="highlight">${username}</span>,</p>
             
             <p>This is your password reset link.</p>
             
