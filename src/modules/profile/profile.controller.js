@@ -26,11 +26,12 @@ exports.updateProfile = async (req, res) => {
 
         const id = await res.user.id
 
-        const uploadedFile = req.file;
-        const profilePicUrl = uploadedFile ? `/uploads/${uploadedFile.filename}` : null;
+        
+        const filePath = req.file.path
+        console.log(filePath)
 
         const data = {
-            body, profilePicUrl, id
+            body, filePath, id
         }
         const updateProfile = await ProfileService.updateProfile(data)
         res.status(updateProfile.status).json({

@@ -16,6 +16,11 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI
 
+const CLOUD_NAME = process.env.CLOUD_NAME
+const CLOUD_API_KEY = process.env.CLOUD_API_KEY
+const CLOUD_API_SECRET = process.env.CLOUD_API_SECRET
+const CLOUDDINARY_URL = process.env.CLOUDDINARY_URL
+
 
 module.exports = {
     DB,
@@ -29,5 +34,9 @@ module.exports = {
     JWT_SECRET,
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
-    GOOGLE_REDIRECT_URI
+    GOOGLE_REDIRECT_URI,
+    CLOUD_NAME,
+    CLOUD_API_KEY,
+    CLOUD_API_SECRET,
+    CLOUDDINARY_URL
 }

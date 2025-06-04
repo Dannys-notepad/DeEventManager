@@ -5,6 +5,7 @@ const env = require('./env')
 const User = require('../models/Users');
 const newLocal = '../models/UserProfile';
 const UserProfile = require(newLocal);
+const JWT_SECRET = env.JWT_SECRET
 
 passport.use(new GoogleStrategy({
   clientID: env.GOOGLE_CLIENT_ID,
@@ -26,15 +27,12 @@ passport.use(new GoogleStrategy({
       });
 
       const createUserProfile = await UserProfile.create({
-        userId: newUser.id,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        email: newUser.email
+        id: newUser.id
       })
-      const token = jwt.sign({ id: newUser.id }, env.JWT_SECRET, { expiresIn: '3600mins' });
+      const token = jwt.sign({ id: newUser.id }, JWT_SECRET, { expiresIn: '3600mins' });
       return cb(null, { user: newUser, token });
     } else {
-      const token = jwt.sign({ id: user.id }, env.JWT_SECRET, { expiresIn: '3600mins' });
+      const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '3600mins' });
       return cb(null, { user, token });
     }
   } catch (err) {

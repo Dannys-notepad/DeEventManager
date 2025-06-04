@@ -1,9 +1,6 @@
 const router = require('express').Router()
 const { dashboard, logout, resetPassword, deleteAccount } = require('./user.controller')
-const authorization = require('../../middlewares/authorization')
 const { userPasswordResetSchema, resetPasswordSchema } = require('./user.validator')
-
-router.use(authorization)
 
 router.get('/dashboard', dashboard)
 

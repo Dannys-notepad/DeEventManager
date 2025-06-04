@@ -1,6 +1,8 @@
 const Users = require('../../models/Users')
 const newLocal = '../../models/UserProfile'
 const UserProfile = require(newLocal)
+const uploadToCloud = require('../../services/cloud-upload.service')
+const path = require('path')
 
 
 exports.returnProfileContent = async (data) => {
@@ -51,13 +53,12 @@ exports.returnProfileContent = async (data) => {
 
 exports.updateProfile = async (data) => {
   try {
-    const { id, profilePicUrl } = await data;
+    const { id, filePath } = await data;
 
     const { bio, tellphoneNumber, socialLinks } = await data.body;
 
     const user = await Users.findOne({
-      where: { id }/*,
-      attributes: ['firstName', 'lastName', 'email', 'username']*/
+      where: { id }
     });
 
     if (!user) {
@@ -83,8 +84,11 @@ exports.updateProfile = async (data) => {
       };
     }
 
+    const profilePicUrl = await uploadToCloud(filePath)
+    //console.log(profilePicUrl)
+
     userProfile.tellphoneNumber = tellphoneNumber;
-    userProfile.profilePicUrl = profilePicUrl;
+    userProfile.profilePicUrl = profilePicUrl.cropped;
     userProfile.socialLinks = socialLinks;
     userProfile.bio = bio;
     userProfile.profileIsComplete = true;

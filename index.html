@@ -11,6 +11,9 @@
     <label for="profilePic">Profile Picture:</label><br>
     <input type="file" name="profilePic" id="profilePic" required><br><br>
 
+    <label for="username">Username:</label><br>
+    <input type="text" name="username" id="username"><br><br>
+
     <label for="bio">Bio:</label><br>
     <input type="text" name="bio" id="bio"><br><br>
 
@@ -36,7 +39,7 @@
         const response = await fetch('http://localhost:3000/api/v1/user/profile/update', {
           method: 'POST',
           headers: {
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwODBjNzUyZS0xMzNiLTQzMjQtYTkwMS1mOGY2NGYwOGNjNzYiLCJpYXQiOjE3NDg5MDM4OTcsImV4cCI6MTc0OTA3NjY5N30.9JhIg13-pcXmBJWBAt5dNe2gwYGsqjuQM4B_rblGvJg'
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwODBjNzUyZS0xMzNiLTQzMjQtYTkwMS1mOGY2NGYwOGNjNzYiLCJpYXQiOjE3NDkwNzYyODAsImV4cCI6MTc0OTI0OTA4MH0.fc3K4OhxSFn4tXpn2EsV931VQJin_fjGClrLkWBYytc'
             // Do NOT set Content-Type manually! Let fetch handle it with FormData.
           },
           body: formData
