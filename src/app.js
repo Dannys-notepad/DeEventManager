@@ -10,8 +10,8 @@ const connectDb = require('./utils/connect.db')
 const authRoute = require('./modules/auth/auth.route')
 const userRoute = require('./modules/user/user.route')
 const profileRoute = require('./modules/profile/profile.route')
+const eventRoute = require('./modules/event/event.route')
 const logger = require('./middlewares/reqLogger')
-const authorization = require('./middlewares/authorization')
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('../docs/swagger');
 const app = express()
@@ -31,9 +31,9 @@ app.use(cors())
 app.use(helmet())
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/v1/auth/', authRoute)
-app.use(authorization)
 app.use('/api/v1/user/', userRoute)
 app.use('/api/v1/user/profile', profileRoute)
+app.use('/api/v1/user/event', eventRoute)
 
 connectDb()
 

@@ -1,5 +1,5 @@
-const { Sequelize, DataTypes,  Model} = require('sequelize')
-const sequelize = require('../config/sequelize.db')
+const { Sequelize, DataTypes, Model } = require('sequelize');
+const sequelize = require('../config/sequelize.db');
 
 class Users extends Model {}
 
@@ -11,9 +11,7 @@ Users.init(
       allowNull: false,
       defaultValue: DataTypes.UUIDV4,
       unique: true,
-      validate: {
-        isUUID: 4,
-      },
+      // Removed validate - validations belong in controllers/services
     },
     username: {
       type: DataTypes.STRING,
@@ -30,15 +28,22 @@ Users.init(
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true
+      unique: true,
+      validate: {
+        isEmail: true
+      }
     },
     authProvider: {
       type: DataTypes.ENUM('local', 'google'),
-      allowNull: false
+      allowNull: false,
+      defaultValue: 'local'
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
+      validate: {
+        len: [8, 128] // Enforce password length if provided
+      }
     },
     googleId: {
       type: DataTypes.STRING,
@@ -49,39 +54,59 @@ Users.init(
       defaultValue: false
     },
     accountStatus: {
-      type: DataTypes.ENUM('active', 'inactive'),
+      type: DataTypes.ENUM('active', 'inactive', 'suspended'),
       defaultValue: 'inactive'
     },
     createdAt: {
       type: DataTypes.DATE,
-      allowNull: false
+      allowNull: false,
+      defaultValue: DataTypes.NOW // Standard Sequelize timestamp
     },
     updatedAt: {
-      type: DataTypes.NOW,
-      allowNull: false
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW // Standard Sequelize timestamp
     }
   },
   {
     sequelize,
-    modelName: 'Users',
-    tableName: 'Users'
+    modelName: 'User', // Changed to singular (best practice)
+    tableName: 'users', // Changed to lowercase
+    timestamps: true, // Enable automatic timestamp management
+    paranoid: true, // Optional: enable soft deletes
+    charset: 'utf8mb4',
+    collate: 'utf8mb4_unicode_ci',
+    indexes: [
+      // Add indexes for better performance
+      { unique: true, fields: ['email'] },
+      { fields: ['googleId'] },
+      { fields: ['accountStatus'] }
+    ]
   }
-)
+);
 
-Users.associate = (models) => {
-    Users.hasMany(models.blackListedTokens, {
-      foreignKey: 'userId',
-      onDelete: 'CASCADE'
-     });
-  return Users;
-};
-
-Users.associate = (models) => {
+// Consolidated associate function
+Users.associate = function(models) {
+  // Has many blacklisted tokens
+  Users.hasMany(models.BlacklistedToken, {
+    foreignKey: 'userId',
+    as: 'blacklistedTokens',
+    onDelete: 'CASCADE'
+  });
+  
+  // Has one profile
   Users.hasOne(models.UserProfile, {
-    foreignKey: 'id',
-    as: 'profile'
+    foreignKey: 'userId', // Changed from 'id' to 'userId'
+    as: 'profile',
+    onDelete: 'CASCADE'
+  });
+  
+  // Add relationship to Events
+  Users.hasMany(models.Event, {
+    foreignKey: 'userId',
+    as: 'events',
+    onDelete: 'CASCADE'
   });
 };
 
-
-module.exports = Users
+module.exports = Users;

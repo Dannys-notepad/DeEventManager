@@ -1,4 +1,7 @@
 'use strict';
+// TODO
+/* Split all table interface into separate migration files */
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {

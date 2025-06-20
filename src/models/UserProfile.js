@@ -8,31 +8,35 @@ UserProfile.init(
     id: {
       type: DataTypes.UUID,
       primaryKey: true,
+      allowNull: false,
       references: {
-        model: 'Users',
+        model: 'users',  // Lowercase reference
         key: 'id'
-      },
-      allowNull: false
+      }
     },
     profilePicUrl: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(512),  // Added length
       allowNull: true
     },
     bio: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,  // Changed to TEXT for longer content
       allowNull: true
     },
-    tellphoneNumber: {
-      type: DataTypes.STRING,
-      allowNull: true
+    phoneNumber: {  // Corrected typo: tellphoneNumber → phoneNumber
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      validate: {
+        is: /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]*$/  // Basic phone validation
+      }
     },
     socialLinks: {
-      type: DataTypes.STRING,
-      allowNull: true
+      type: DataTypes.JSON,  // Better for structured data
+      allowNull: true,
+      defaultValue: {}
     },
     profileIsComplete: {
       type: DataTypes.BOOLEAN,
-      allowNull: true,
+      allowNull: false,  // Changed to not null
       defaultValue: false
     },
     createdAt: {
@@ -49,15 +53,21 @@ UserProfile.init(
   {
     sequelize,
     modelName: 'UserProfile',
-    tableName: 'UserProfile'
+    tableName: 'user_profiles',  // Snake_case
+    timestamps: true,
+    indexes: [
+      { fields: ['phoneNumber'], unique: true }  // Phone number uniqueness
+    ]
   }
 );
 
 // Association
-UserProfile.associate = (models) => {
-  UserProfile.belongsTo(models.Users, {
-    foreignKey: 'id'});
-  return UserProfile
+UserProfile.associate = function(models) {
+  UserProfile.belongsTo(models.User, {
+    foreignKey: 'id',
+    as: 'user',
+    onDelete: 'CASCADE'  // Cascade delete
+  });
 };
 
 module.exports = UserProfile;

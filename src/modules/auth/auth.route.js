@@ -11,48 +11,28 @@ const {
   resetPassword
 } = require('./auth.controller');
 
-// =========================
-// ✅ NORMAL ACCESS ROUTES
-// =========================
+/**
+ * @swagger
+ * tags:
+ *   name: Authentication
+ *   description: User Authentication route
+ */
 
 /**
  * @swagger
- * /auth/register:
+ * /api/v1/auth/register:
  *   post:
  *     summary: Register a new user
- *     tags:
- *       - Authentication
+ *     tags: [Authentication]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - firstName
- *               - lastName
- *               - username
- *               - email
- *               - password
- *             properties:
- *               firstName:
- *                 type: string
- *                 example: Daniel
- *               lastName:
- *                 type: string
- *                 example: Smith
- *               username:
- *                 type: string
- *                 example: danielsmith
- *               email:
- *                 type: string
- *                 example: daniel@example.com
- *               password:
- *                 type: string
- *                 example: mySecurePassword123
+ *             $ref: '#/components/schemas/RegisterUser'
  *     responses:
  *       201:
- *         description: User registered successfully
+ *         description: User registered successfully, and an activation email has been sent to the user
  *       400:
  *         description: Email already in use or validation failed
  */
@@ -60,11 +40,10 @@ router.post('/register', registerSchema, registerUser);
 
 /**
  * @swagger
- * /auth/activate-account/{token}:
+ * /api/v1/auth/activate-account/{token}:
  *   get:
  *     summary: Activate a user account with token
- *     tags:
- *       - Authentication
+ *     tags: [Authentication]
  *     parameters:
  *       - in: path
  *         name: token
@@ -74,7 +53,7 @@ router.post('/register', registerSchema, registerUser);
  *         description: Activation token from email
  *     responses:
  *       200:
- *         description: Account activated successfully
+ *         description: Account activated successfully, proceed to login
  *       400:
  *         description: Invalid or expired token
  */
@@ -82,18 +61,17 @@ router.get('/activate-account/:token', activateAccount);
 
 /**
  * @swagger
- * /auth/resend-activation-link/{email}:
+ * /api/v1/auth/resend-activation-link/{email}:
  *   get:
  *     summary: Resend activation link to user email
- *     tags:
- *       - Authentication
+ *     tags: [Authentication]
  *     parameters:
  *       - in: path
  *         name: email
  *         required: true
  *         schema:
  *           type: string
- *         description: User's email
+ *         description: Email address of the user
  *     responses:
  *       200:
  *         description: Activation link sent
@@ -104,27 +82,16 @@ router.get('/resend-activation-link/:email', generateActivationUrl);
 
 /**
  * @swagger
- * /auth/login:
+ * /api/v1/auth/login:
  *   post:
- *     summary: Log in a user
- *     tags:
- *       - Authentication
+ *     summary: Log in a user using email or username
+ *     tags: [Authentication]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 example: daniel@example.com
- *               password:
- *                 type: string
- *                 example: mySecurePassword123
+ *             $ref: '#/components/schemas/LoginUser'
  *     responses:
  *       200:
  *         description: Login successful
@@ -133,17 +100,12 @@ router.get('/resend-activation-link/:email', generateActivationUrl);
  */
 router.post('/login', loginSchema, loginUser);
 
-// =======================
-// ✅ GOOGLE AUTH ROUTES
-// =======================
-
 /**
  * @swagger
- * /auth/google:
+ * /api/v1/auth/google:
  *   get:
  *     summary: Start Google OAuth2 login
- *     tags:
- *       - Authentication
+ *     tags: [Authentication]
  *     responses:
  *       302:
  *         description: Redirect to Google for authentication
@@ -154,11 +116,10 @@ router.get('/google', passport.authenticate('google', {
 
 /**
  * @swagger
- * /auth/google/callback:
+ * /api/v1/auth/google/callback:
  *   get:
  *     summary: Handle Google OAuth2 callback
- *     tags:
- *       - Authentication
+ *     tags: [Authentication]
  *     responses:
  *       200:
  *         description: Google login successful
@@ -174,24 +135,19 @@ router.get('/google/callback',
   oauth
 );
 
-// ================================
-// ✅ FORGOTTEN PASSWORD ROUTES
-// ================================
-
 /**
  * @swagger
- * /auth/forgotten-password/request-password-reset/{email}:
+ * /api/v1/auth/forgotten-password/request-password-reset/{email}:
  *   get:
  *     summary: Request password reset link
- *     tags:
- *       - Authentication
+ *     tags: [Authentication]
  *     parameters:
  *       - in: path
  *         name: email
  *         required: true
  *         schema:
  *           type: string
- *         description: User's email
+ *         description: Email address to send the password reset link
  *     responses:
  *       200:
  *         description: Reset link sent
@@ -202,30 +158,23 @@ router.get('/forgotten-password/request-password-reset/:email', generatePassword
 
 /**
  * @swagger
- * /auth/forgotten-password/reset-password/{token}:
+ * /api/v1/auth/forgotten-password/reset-password/{token}:
  *   post:
  *     summary: Reset password with token
- *     tags:
- *       - Authentication
+ *     tags: [Authentication]
  *     parameters:
  *       - in: path
  *         name: token
  *         required: true
  *         schema:
  *           type: string
- *         description: Password reset token
+ *         description: Reset token sent to email
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - newPassword
- *             properties:
- *               newPassword:
- *                 type: string
- *                 example: newSecurePassword456
+ *             $ref: '#/components/schemas/ResetPassword'
  *     responses:
  *       200:
  *         description: Password reset successful
@@ -235,3 +184,60 @@ router.get('/forgotten-password/request-password-reset/:email', generatePassword
 router.post('/forgotten-password/reset-password/:token', resetPasswordSchema, resetPassword);
 
 module.exports = router;
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     RegisterUser:
+ *       type: object
+ *       required:
+ *         - firstName
+ *         - lastName
+ *         - username
+ *         - email
+ *         - password
+ *         - confirmPassword
+ *       properties:
+ *         firstName:
+ *           type: string
+ *           example: Daniel
+ *         lastName:
+ *           type: string
+ *           example: Smith
+ *         username:
+ *           type: string
+ *           example: danielsmith
+ *         email:
+ *           type: string
+ *           example: daniel@example.com
+ *         password:
+ *           type: string
+ *           example: mySecurePassword123###
+ *         confirmPassword:
+ *           type: string
+ *           example: mySecurePassword123###
+
+ *     LoginUser:
+ *       type: object
+ *       required:
+ *         - EmailOrUsername
+ *         - password
+ *       properties:
+ *         EmailOrUsername:
+ *           type: string
+ *           description: Either a valid email or username
+ *           example: daniel@example.com
+ *         password:
+ *           type: string
+ *           example: mySecurePassword123###
+
+ *     ResetPassword:
+ *       type: object
+ *       required:
+ *         - newPassword
+ *       properties:
+ *         newPassword:
+ *           type: string
+ *           example: newSecurePassword456
+ */
