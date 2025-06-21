@@ -19,13 +19,16 @@ exports.createEvent = async (data) => {
                 status: 400
             }
         }
-
+        console.log(body.venueAccessMeduim)
         const newEvent = new Event({
+            userId,
             title:  body.title,
             description: body.description,
+            time: body.time,
+            date: body.date,
             categoryOrTag: body.categoryOrTag,
             venueType: body.venueType,
-            venueAccessMeduim: body.venueAccessMeduim,
+            venueAccessMedium: body.venueAccessMedium,
             ticketType: body.ticketType,
             ticketQuantity: body.ticketQuantity,
             ticketDiscountCode: body.ticketDiscountCode,
