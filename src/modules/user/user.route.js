@@ -7,7 +7,84 @@ const { userPasswordResetSchema, resetPasswordSchema } = require('./user.validat
  * @swagger
  * tags:
  *   name: User
- *   description: User account operations/management routes
+ *   description: User account management
+ * components:
+ *   securitySchemes:
+ *     bearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     Dashboard:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: "Welcome back, Daniel!"
+ *         stats:
+ *           type: object
+ *           properties:
+ *             eventsCreated:
+ *               type: integer
+ *               example: 5
+ *             upcomingEvents:
+ *               type: integer
+ *               example: 2
+ *             ticketsSold:
+ *               type: integer
+ *               example: 150
+ * 
+ *     PasswordResetRequest:
+ *       type: object
+ *       required:
+ *         - oldPassword
+ *         - newPassword
+ *       properties:
+ *         oldPassword:
+ *           type: string
+ *           minLength: 8
+ *           pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+ *           example: "OldSecurePass123!"
+ *         newPassword:
+ *           type: string
+ *           minLength: 8
+ *           pattern: '^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+ *           example: "NewSecurePass456!"
+ * 
+ *     AccountDeletionRequest:
+ *       type: object
+ *       required:
+ *         - password
+ *       properties:
+ *         password:
+ *           type: string
+ *           minLength: 8
+ *           example: "CurrentSecurePass123!"
+ * 
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *           example: "Invalid credentials"
+ *         details:
+ *           type: array
+ *           items:
+ *             type: object
+ *             properties:
+ *               field:
+ *                 type: string
+ *                 example: "password"
+ *               message:
+ *                 type: string
+ *                 example: "Password must be at least 8 characters"
+ * 
+ *     SuccessResponse:
+ *       type: object
+ *       properties:
+ *         message:
+ *           type: string
+ *           example: "Operation completed successfully"
  */
 
 /**
@@ -15,14 +92,25 @@ const { userPasswordResetSchema, resetPasswordSchema } = require('./user.validat
  * /api/v1/user/dashboard:
  *   get:
  *     summary: Get user dashboard
+ *     description: Retrieve user-specific dashboard with statistics
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Welcome @-username
+ *         description: Dashboard data retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Dashboard'
  *       401:
- *         description: Unauthorized - Invalid or missing token
+ *         description: Unauthorized - invalid or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
  */
 router.get('/dashboard', authorization, dashboard);
 
@@ -31,14 +119,25 @@ router.get('/dashboard', authorization, dashboard);
  * /api/v1/user/account/logout:
  *   post:
  *     summary: Logout user
+ *     description: Invalidate user session and authentication token
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: User successfully logged out
+ *         description: Logout successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       401:
- *         description: Unauthorized - Invalid or expired token
+ *         description: Unauthorized - invalid or expired token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       500:
+ *         description: Internal server error
  */
 router.post('/account/logout', authorization, logout);
 
@@ -46,7 +145,8 @@ router.post('/account/logout', authorization, logout);
  * @swagger
  * /api/v1/user/password/reset-password:
  *   post:
- *     summary: Reset user password
+ *     summary: Reset password
+ *     description: Change user password after verifying current password
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
@@ -55,22 +155,33 @@ router.post('/account/logout', authorization, logout);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/UserPasswordReset'
+ *             $ref: '#/components/schemas/PasswordResetRequest'
  *     responses:
  *       200:
- *         description: Password successfully reset
+ *         description: Password reset successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
- *         description: Validation error
+ *         description: Validation error or incorrect current password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
  */
 router.post('/password/reset-password', authorization, userPasswordResetSchema, resetPassword);
 
 /**
  * @swagger
  * /api/v1/user/account/delete-account:
- *   post:
+ *   delete:
  *     summary: Delete user account
+ *     description: Permanently delete user account after password confirmation
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
@@ -79,46 +190,25 @@ router.post('/password/reset-password', authorization, userPasswordResetSchema, 
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Password'
+ *             $ref: '#/components/schemas/AccountDeletionRequest'
  *     responses:
  *       200:
- *         description: Account successfully deleted
+ *         description: Account deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
  *       400:
- *         description: Validation error
+ *         description: Validation error or incorrect password
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
  *       401:
  *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
  */
-router.post('/account/delete-account', authorization, resetPasswordSchema, deleteAccount);
+router.delete('/account/delete-account', authorization, resetPasswordSchema, deleteAccount);
 
 module.exports = router;
-
-/**
- * @swagger
- * components:
- *   securitySchemes:
- *     bearerAuth:
- *       type: http
- *       scheme: bearer
- *       bearerFormat: JWT
- *   schemas:
- *      UserPasswordReset:
- *       type: object
- *       required:
- *         - oldPassword
- *         - newPassword
- *       properties:
- *         OldPassword:
- *           type: string
- *           example: OldPassword123!
- *         newPassword:
- *           type: string
- *           example: NewPassword123!
- *      Password:
- *       type: object
- *       required:
- *         - password
- *       properties:
- *         password:
- *           type: string
- *           example: UserCurrentPassword!
- */

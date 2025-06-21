@@ -14,7 +14,7 @@ exports.dashboard = async (req, res) => {
         console.error(e)
         res.status(500).json({
             response: {
-                error: 'Something went wrong try again later',
+                error: 'Internal Server Error',
                 status: 500
             }
         })
@@ -70,7 +70,7 @@ exports.deleteAccount = async (req, res) => {
         console.error(e)
         res.status(500).json({
             response: {
-                error: 'could not delete user account'
+                error: 'Internal Server Error'
             }
         })
     }
@@ -93,7 +93,7 @@ exports.logout = async (req, res) => {
         console.error(e)
         res.status(500).json({
             response: {
-                error: 'could not logout user',
+                error: 'Internal Server Error',
                 status: '500'
             }
         })        

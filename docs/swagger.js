@@ -6,7 +6,7 @@ const options = {
     info: {
       title: 'De Event Manager API',
       version: '1.0.0',
-      description: 'An Headless Backend API for managing eventss',
+      description: 'An Headless Backend API for managing events',
     },
     servers: [
       {

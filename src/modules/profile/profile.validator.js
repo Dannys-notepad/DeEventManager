@@ -10,8 +10,13 @@ exports.updateProfileSchema = async (req, res, next) => {
   })
   
   const { error } = schema.validate(req.body, {abortEarly: false})
-  if(error){
-    return res.status(400).json({message: error.message})
+  if (error) {
+    const errors = error.details.map(err => ({
+      field: err.context.key,
+      message: err.message.replace(/['"]/g, '')
+    }));
+    
+    return res.status(400).json({ errors });
   }
   next()
 }

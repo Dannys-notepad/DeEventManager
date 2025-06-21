@@ -29,6 +29,7 @@ exports.createEvent = async (data) => {
             categoryOrTag: body.categoryOrTag,
             venueType: body.venueType,
             venueAccessMedium: body.venueAccessMedium,
+            speakersPerformers: body.speakersPerformers,
             ticketType: body.ticketType,
             ticketQuantity: body.ticketQuantity,
             ticketDiscountCode: body.ticketDiscountCode,
@@ -40,8 +41,9 @@ exports.createEvent = async (data) => {
 
         await newEvent.save()
         return {
+            eventId: newEvent.id,
             message: 'event was successfully created',
-            status: 201
+            status: 201,
         }
     } catch (e) {
         throw e        
@@ -56,23 +58,77 @@ exports.deleteEvent = async (data) => {
         const event = await Event.findOne({where: { id: eventId }})
         if(!event){
             return {
-                message: 'event do not exist',
-                status: 400
+                message: 'Event not found',
+                status: 404
             }
         }
         if(event.userId !== userId){
             return {
-                message: 'could not delete this event because it do not belong to this user',
-                status: 400
+                message: 'Forbidden - User do not own this event',
+                status: 403
             }
         }
 
         const deleteEvent = await Event.destroy({ where: { id: eventId}})
         return {
-            message: 'event was successfully deleted',
+            message: `event ${eventId} was successfully deleted`,
             status: 200
         }
     } catch (e) {
         throw e        
+    }
+}
+
+exports.viewEvents = async (data) => {
+    try {
+        const userId = await data
+        const userExists = await UserProfile.findOne({ where: { id: userId }})
+        if(!userExists){
+            return {
+                message: 'Forbidden - User do not exist',
+                status: 403
+            }
+        }
+        const events = await Event.findAll({ where: { userId }})
+        if(!events.length){
+            return {
+                message: 'User has not created any events yet',
+                status: 404
+            }
+        }
+
+        return {
+            events,
+            status: 200
+        }
+    } catch (e) {
+        throw e
+    }
+}
+
+exports.viewEvent = async (data) => {
+    try {
+        const { userId, eventId } = await data
+        const userExists = await UserProfile.findOne({ where: { id: userId }})
+        if(!userExists){
+            return {
+                message: 'Forbidden - User do not exist',
+                status: 403
+            }
+        }
+        const event = await Event.findOne({ where: { id: eventId }})
+        if(!event){
+            return {
+                message: 'Event do not exist',
+                status: 404
+            }
+        }
+
+        return {
+            event,
+            status: 200
+        }
+    } catch (e) {
+        throw e
     }
 }
