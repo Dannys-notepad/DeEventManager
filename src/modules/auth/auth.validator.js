@@ -5,16 +5,13 @@ const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@
 // SIGNUP SCHEMA
 exports.registerSchema = async (req, res, next) => {
   const schema = Joi.object({
-    username: Joi.string().trim().min(3).max(50).required(),
     firstName: Joi.string().trim().min(3).max(50).required(),
     lastName: Joi.string().trim().min(3).max(50).required(),
     email: Joi.string().trim().email().required(),
     password: Joi.string().pattern(passwordRegex).required().messages({
       'string.pattern.base': 'Password must be at least 6 characters long, and include uppercase, lowercase, digit, and special character'
     }),
-    confirmPassword: Joi.string().valid(Joi.ref('password')).required().messages({
-      'any.only': 'Passords do not match'
-    })
+    organization: Joi.string().trim().min(3).max(50).required(),
   })
   
   const { error } = schema.validate(req.body, {abortEarly: false})
@@ -33,7 +30,7 @@ exports.registerSchema = async (req, res, next) => {
 // LOGIN SCHEMA
 exports.loginSchema = async (req, res, next) => {
   const schema = Joi.object({
-    EmailOrUsername: Joi.string().trim().required(),
+    email: Joi.string().trim().required(),
     password: Joi.string().required()
   })
   

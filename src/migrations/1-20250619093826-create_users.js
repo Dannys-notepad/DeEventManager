@@ -3,25 +3,15 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('users', {  // Changed to lowercase
+    await queryInterface.createTable('users', {
       id: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING(20),
         primaryKey: true,
         allowNull: false,
-        defaultValue: Sequelize.UUIDV4,
-        unique: true,
-        // Removed validate - migrations shouldn't contain validations
+        unique: true
       },
-      username: {
-        type: Sequelize.STRING(50),  // Added length constraint
-        allowNull: true
-      },
-      firstName: {
-        type: Sequelize.STRING(50),
-        allowNull: false
-      },
-      lastName: {
-        type: Sequelize.STRING(50),
+      name: {
+        type: Sequelize.STRING(100),
         allowNull: false
       },
       email: {
@@ -34,12 +24,12 @@ module.exports = {
         allowNull: false,
         defaultValue: 'local'
       },
-      password: {
-        type: Sequelize.STRING(100),
+      passwordHash: {
+        type: Sequelize.STRING(128),
         allowNull: true
       },
       googleId: {
-        type: Sequelize.STRING(50),
+        type: Sequelize.STRING,
         allowNull: true
       },
       emailVerified: {
@@ -47,8 +37,24 @@ module.exports = {
         defaultValue: false
       },
       accountStatus: {
-        type: Sequelize.ENUM('active', 'inactive', 'suspended'),  // Added suspended
+        type: Sequelize.ENUM('active', 'inactive', 'suspended'),
         defaultValue: 'inactive'
+      },
+      accountType: {
+        type: Sequelize.ENUM('organizer', 'attendee', 'admin'),
+        defaultValue: 'organizer'
+      },
+      organization: {
+        type: Sequelize.STRING(100),
+        allowNull: false
+      },
+      passwordResetToken: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      passwordResetExpires: {
+        type: Sequelize.DATE,
+        allowNull: true
       },
       createdAt: {
         allowNull: false,
@@ -59,31 +65,35 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE,
         defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+      },
+      deletedAt: {
+        type: Sequelize.DATE,
+        allowNull: true
       }
     }, {
-      // Engine and charset specification for MySQL
-      engine: 'InnoDB',
       charset: 'utf8mb4',
       collate: 'utf8mb4_unicode_ci'
     });
 
-    // Create indexes for better performance
     await queryInterface.addIndex('users', ['email'], {
       unique: true,
       name: 'users_email_unique'
     });
-    
+
     await queryInterface.addIndex('users', ['googleId'], {
       name: 'users_googleId_index'
+    });
+
+    await queryInterface.addIndex('users', ['accountStatus'], {
+      name: 'users_accountStatus_index'
     });
   },
 
   async down(queryInterface, Sequelize) {
-    // Remove indexes first
     await queryInterface.removeIndex('users', 'users_email_unique');
     await queryInterface.removeIndex('users', 'users_googleId_index');
-    
-    // Drop table
+    await queryInterface.removeIndex('users', 'users_accountStatus_index');
+
     await queryInterface.dropTable('users');
   }
 };

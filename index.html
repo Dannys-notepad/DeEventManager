@@ -12,16 +12,19 @@
     <input type="file" name="profilePic" id="profilePic" required><br><br>
 
     <label for="username">Username:</label><br>
-    <input type="text" name="username" id="username"><br><br>
+    <input type="text" name="username" id="username" required><br><br>
 
     <label for="bio">Bio:</label><br>
     <input type="text" name="bio" id="bio"><br><br>
 
-    <label for="tellphoneNumber">Telephone Number:</label><br>
-    <input type="text" name="tellphoneNumber" id="tellphoneNumber"><br><br>
+    <label for="phone">Phone:</label><br>
+    <input type="text" name="phone" id="phone"><br><br>
 
-    <label for="socialLinks">Social Links:</label><br>
-    <input type="text" name="socialLinks" id="socialLinks"><br><br>
+    <label for="twitter">Twitter:</label><br>
+    <input type="text" name="twitter" id="twitter"><br><br>
+
+    <label for="facebook">Twitter:</label><br>
+    <input type="text" name="facebook id="facebook><br><br>
 
 
     <button type="submit">Submit</button>
@@ -33,27 +36,38 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const formData = new FormData(form);
+      const formData = new FormData();
+      const fileInput = document.getElementById('profilePic');
+
+      formData.append('profilePic', fileInput.files[0]);
+      formData.append('username', document.getElementById('username').value);
+      formData.append('bio', document.getElementById('bio').value);
+      formData.append('phone', document.getElementById('phone').value);
+
+      // Social links as a JSON string
+      const socialLinks = {
+        x: document.getElementById('twitter').value,
+        facebook: document.getElementById('facebook').value,
+      };
+      formData.append('socialLinks', JSON.stringify(socialLinks));
 
       try {
         const response = await fetch('http://localhost:3000/api/v1/user/profile/update', {
           method: 'POST',
           headers: {
-            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxZDAyZGUyYS05Y2M1LTQ4N2MtYTc4NC00OWRhMTNlOGUyN2IiLCJpYXQiOjE3NTA0NjIxNTAsImV4cCI6MTc1MDYzNDk1MH0.m-TPuUgpWghlIWX5JwFjAVYOWwsj_eYQ2XiS0mcx0a8'
-            // Do NOT set Content-Type manually! Let fetch handle it with FormData.
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NzE2MjgwMS05OWNhLTRjYzUtYTI2Zi03ZWQ3MGIzNmFkYTQiLCJpYXQiOjE3NTA3NzQ2NDQsImV4cCI6MTc1MDk0NzQ0NH0.K0c0hPaG-Ap7jZjwWRbJuS-SGJyhVDzmpRs3cRQWjGo'
           },
           body: formData
         });
 
         const result = await response.json();
         console.log(result);
-        //alert(`Status: ${response.status}\nMessage: ${result.message}`);
+        alert(`Status: ${response.status}\nMessage: ${result.message || 'Profile updated successfully.'}`);
       } catch (error) {
         console.error(error);
         alert('Upload failed, check the console.');
       }
     });
   </script>
-
 </body>
 </html>

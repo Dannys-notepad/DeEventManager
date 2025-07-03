@@ -6,7 +6,15 @@ exports.updateProfileSchema = async (req, res, next) => {
     username: Joi.string().trim().min(3).max(50),
     bio: Joi.string().trim().min(3).max(20).required(),
     tellphoneNumber: Joi.string().trim().max(50).required(),
-    socialLinks: Joi.string().trim().max(50).required()
+    socialLinks: Joi.array()
+    .items(
+      Joi.object({
+        facebook: Joi.string().required(),
+        x: Joi.string().required(),
+        linkedin: Joi.string(),
+        instagram: Joi.string()
+      })
+    )
   })
   
   const { error } = schema.validate(req.body, {abortEarly: false})

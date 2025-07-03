@@ -1,142 +1,127 @@
-const AuthService = require('./auth.service')
+const AuthService = require('./auth.service');
+const { success, error } = require('../../utils/response');
 
 // REGISTRATION CONTROLLER 
 exports.registerUser = async (req, res) => {
   try {
-    const body = await req.body
+    const body = await req.body;
     const data = {
       body,
       protocol: req.protocol,
       host: req.get('host')
+    };
+    
+    const registerUser = await AuthService.registerUser(data);
+    
+    if(registerUser.status !== 201) {
+      return error(res, registerUser.message, { email: 'Email already in use' }, registerUser.status);
     }
-    const registerUser = await AuthService.registerUser(data)
-    res.status(registerUser.status).json({ response: registerUser })
-
+    
+    success(res, registerUser.message, registerUser.data, registerUser.status);
   } catch (e) {
     console.error(e)
-    res.status(500).json({message: 'Could not register user'})
+    error(res, 'Registration failed', { server: 'Internal server error' }, 500);
   }
-}
-
+};
 
 // ACTIVATION CONTROLLER
 exports.activateAccount = async (req, res) => {
   try {
-    const activateAccount = await AuthService.activateAccount(req, res)
-    //res.redirect('/api/v1/auth/login')
+    await AuthService.activateAccount(req, res);
   } catch (e) {
     console.error(e)
-    res.status(500).json({
-      message: 'error activating account'
-    })
+    error(res, 'Account activation failed', { server: 'Internal server error' }, 500);
   }
-}
+};
 
 // GENERATE ACTIVATION URL CONTROLLER
 exports.generateActivationUrl = async (req, res) => {
   try {
-    const { email } = await req.params
+    const { email } = req.params;
     const data = {
       email,
       host: req.get('host'),
       protocol: req.protocol
+    };
+    
+    const result = await AuthService.generateVerificationUrl(data);
+    
+    if(result.status !== 200) {
+      return error(res, result.message, { email: result.message }, result.status);
     }
-    const generateVerificationUrl = await AuthService.generateVerificationUrl(data)
-    res.status(generateVerificationUrl.status).json({
-      response: generateVerificationUrl
-    })
+    
+    success(res, result.message, null, result.status);
   } catch (e) {
     console.error(e)
-    res.status(500).json({
-      message: 'error generating verification link'
-    })
+    error(res, 'Failed to generate activation URL', { server: 'Internal server error' }, 500);
   }
-}
+};
 
 // LOGIN CONTROLLER 
 exports.loginUser = async (req, res) => {
   try {
-    const { EmailOrUsername, password } = await req.body
-    const data = await {
-      EmailOrUsername,
+    const { email, password } = await req.body; 
+    const data = {
+      email,
       password,
       protocol: req.protocol,
       host: req.get('host')
-    }
+    };
 
-    const loginUser = await AuthService.loginUser(data)
-    res.status(loginUser.status).json({
-      response: loginUser
-    })
-
-  } catch (e) {
-    console.error(e.message)
-    res.status(500).json({
-      message: 'could not login user'
-    })
-  }
-}
-
-// GOOGLE OAUTH CONTROLLER
-
-exports.oauth = async (req, res) => {
-  try {
-    const { token } = await req.user;
-    res.json({
-      response: {
-        message: 'authentication successful',
-        status: 200,
-        token
-      }
-    });
-  } catch (e) {
-    console.log(e)
-    res.status(500).json({
-      error: 'something went wrong'
-    })
-  }
-}
-
-
-// FORGOTTEN PASSWORD RESET CONTROLLERS
-exports.generatePasswordResetLink = async (req, res) => {
-    try {
-        const { email } = await req.params
-        const data = {
-            email,
-            host: req.get('host'),
-            protocol: req.protocol
-        }
-        const passwordResetUrl = await AuthService.passwordResetUrl(data)
-        res.status(passwordResetUrl.status).json({
-            response: {
-                passwordResetUrl
-            }
-        })
-    } catch (e) {
-        console.error(e)
-        res.status(500).json({
-            response: {
-                error: 'Something went wrong generating a password reset link',
-                status: 500
-            }
-        })
+    const result = await AuthService.loginUser(data);
+    
+    if(result.status !== 200) {
+      const errorField = result.message.includes('password') ? 'password' : 'email';
+      return error(res, result.message, { [errorField]: result.message }, result.status);
     }
     
-}
+    success(res, result.message, { token: result.token }, result.status);
+  } catch (e) {
+    console.error(e)
+    error(res, 'Login failed', { server: 'Internal server error' }, 500);
+  }
+};
+
+// FORGOTTEN PASSWORD RESET CONTROLLER
+exports.generatePasswordResetLink = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const data = {
+      email,
+      host: req.get('host'),
+      protocol: req.protocol
+    };
+    
+    const result = await AuthService.passwordResetUrl(data);
+    
+    if(result.status !== 200) {
+      return error(res, result.message, { email: result.message }, result.status);
+    }
+    
+    success(res, result.message, null, result.status);
+  } catch (e) {
+    console.error(e)
+    error(res, 'Password reset failed', { server: 'Internal server error' }, 500);
+  }
+};
 
 // FINAL PASSWORD RESET CONTROLLER
 exports.resetPassword = async (req, res) => {
   try {
-      const resetpassword = await AuthService.resetPassword(req, res)
+    await AuthService.resetPassword(req, res); 
   } catch (e) {
-      console.error(e)
-      res.status(500).json({
-          response: {
-              error: 'could not reset password',
-              status: 500
-          }
-      })
+    console.error(e)
+    error(res, 'Password reset failed', { server: 'Internal server error' }, 500);
   }
-  
-}
+};
+
+// GOOGLE OAUTH CONTROLLER
+exports.oauth = async (req, res) => {
+  try {
+    const { token } = req.user;
+    success(res, 'Authentication successful', { token }, 200);
+  } catch (e) {
+    console.error(e)
+    error(res, 'OAuth authentication failed', { server: 'Internal server error' }, 500);
+  }
+};

@@ -7,7 +7,7 @@ router.use(authorization);
 
 /**
  * @swagger
- * /events:
+ * /api/v1/user/event:
  *   get:
  *     summary: Get all events for the authenticated user
  *     description: Retrieves all events created by the authenticated user. Requires authentication.
@@ -33,7 +33,7 @@ router.get('/', viewEvents);
 
 /**
  * @swagger
- * /events/{eventId}:
+ * /api/v1/user/event/{eventId}:
  *   get:
  *     summary: Get a specific event
  *     description: Retrieves a specific event by its ID. User must own the event. Requires authentication.
@@ -69,7 +69,7 @@ router.get('/:eventId', viewEvent);
 
 /**
  * @swagger
- * /events/create-event:
+ * /api/v1/user/event/create-event:
  *   post:
  *     summary: Create a new event
  *     description: Creates a new event with the provided details. Requires authentication.
@@ -109,7 +109,7 @@ router.post('/create-event', createEventSchema, createEvent);
 
 /**
  * @swagger
- * /events/delete-event/{eventId}:
+ * /api/v1/user/event/delete-event/{eventId}:
  *   delete:
  *     summary: Delete an event
  *     description: Deletes an event by its ID. User must own the event. Requires authentication.

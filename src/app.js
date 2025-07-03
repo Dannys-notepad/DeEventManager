@@ -18,6 +18,29 @@ const app = express()
 
 require('./config/passport');
 
+app.use((err, req, res, next) => {
+  console.error(err)
+
+  res.status(err.status || 500).json({
+    success: false,
+    message: err.message || 'Something went wrong',
+    errors: err.errors || null
+  })
+})
+
+app.use(
+  limiter = rateLimiter({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: {
+      success: false,
+      message: 'Too many requests from this IP, please try again after 15 minutes.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false
+  })
+);
+
 app.use(session({
     secret: process.env.JWT_SECRET,
     resave: false,

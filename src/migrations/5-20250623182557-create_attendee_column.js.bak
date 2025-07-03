@@ -1,0 +1,35 @@
+'use strict';
+
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up (queryInterface, Sequelize) {
+    await queryInterface.addColumn('events', 'attendees', {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    });
+  },
+
+  async down (queryInterface, Sequelize) {
+    await queryInterface.removeColumn('events', 'attendees');
+  }
+};
+
+/**
+'use strict';
+
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.addColumn('YourTableName', 'newColumnName', {
+      type: Sequelize.STRING, // or Sequelize.INTEGER, etc.
+      allowNull: true, // or false
+      defaultValue: null, // optional
+    });
+  },
+
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeColumn('YourTableName', 'newColumnName');
+  }
+};
+
+ */

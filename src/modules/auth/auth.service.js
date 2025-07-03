@@ -12,8 +12,8 @@ const generateResetCode = require('../../utils/generateResetCode')
 // USER REGISTRATION SERVICE
 exports.registerUser = async (data) => {
     try {
-        const { protocol, host } = await data
-        const { username, firstName, lastName, email, password } = await data.body
+        const { protocol, host } = data
+        const { firstName, lastName, email, password, organization } = data.body
         
         const existingEmail = await Users.findOne({ where: { email: email.toLowerCase() }})
         
@@ -24,34 +24,42 @@ exports.registerUser = async (data) => {
             }
         }
         
+        const name = `${firstName} ${lastName}`
         const encryptedPassword = await encrypt(password)
         const newUser = new Users({
-          username,
-          firstName,
-          lastName,
+          name,
           authProvider: 'local',
           email,
-          password: encryptedPassword,
+          passwordHash: encryptedPassword,
+          organization
         })
         
         const token = jwt.sign({ userId: newUser.id }, env.JWT_SECRET, { expiresIn: '5mins' })
         const link = `${protocol}://${host}/api/v1/auth/activate-account/${token}`
         
+        await newUser.save()
+
         const mailFormat = {
           email: newUser.email,
-          html: activateAccountTemplate(link, newUser.username),
+          html: activateAccountTemplate(link, firstName),
           subject: 'ACCOUNT ACTIVATION'
         }
-        
-        await newUser.save()
-        // await sendEmail(mailFormat)
+        await sendEmail(mailFormat)
+
         return {
-          message: 'account registered successfully, a verification mail has been sent to your email, follow intructions to verify your account',
+          message: 'account registered successfully, please check your email to verify your account',
           status: 201,
-          link
+          data: {
+            id: newUser.id,
+            name: newUser.name,
+            email: newUser.email,
+            organization: newUser.organization,
+            accountType: newUser.accountType,
+            createdAt: newUser.createdAt,
+          }
         }
     } catch (e) {
-        throw { error: e }
+        throw (e)
     }
 }
 
@@ -77,7 +85,7 @@ exports.activateAccount = async (req, res) => {
           if(!decode){
             return res.status(400).json({
               response: {
-                message: 'this activation link is incorrect, check your email foolow instructions and try agian',
+                message: 'this activation link is incorrect, check your email follow instructions and try agian',
                 status: 400
               }
             })
@@ -96,13 +104,13 @@ exports.activateAccount = async (req, res) => {
         if (!user) {
           return res.status(404).json({
            response: {
-            message: 'Account not found',
+            message: 'no account with this email',
             status: 404
           }
           })
         };
 
-        if (user.emailVerified) {
+        if (user.isVerified) {
           return res.status(400).json({
             response: {
               message: 'Account is already activated',
@@ -111,12 +119,12 @@ exports.activateAccount = async (req, res) => {
           })
         };
 
-        user.emailVerified = true
+        user.isVerified = true
         user.accountStatus = 'active'
 
-        const createUserProfile = new UserProfile({ id: user.id })
+        //const createUserProfile = new UserProfile({ id: user.id })
         await user.save();
-        await createUserProfile.save()
+        //await createUserProfile.save()
         res.json({
           response: {
             message: 'account activated proceed to login',
@@ -150,39 +158,39 @@ exports.generateVerificationUrl = async (data) => {
     const { email, protocol, host } = await data
     
     //console.log(email)
-    const existingEmail = await Users.findOne({where: { email }})
-    if(!existingEmail){
+    const user = await Users.findOne({where: { email }})
+    if(!user){
       return {
         message: 'account do not exist',
         status: 404
       }
     }
 
-    if (existingEmail.emailVerified) {
+    if (user.isVerified) {
       return {
         message: 'your account has been activated, proceed to login',
-        status: 200
+        status: 400
       }
     }
 
-    const newToken = jwt.sign({ userId: existingEmail.id }, env.JWT_SECRET, { expiresIn: '5mins' });
+    const newToken = jwt.sign({ userId: user.id }, env.JWT_SECRET, { expiresIn: '5mins' });
     const link = `${protocol}://${host}/api/v1/auth/activate-account/${newToken}`;
 
     const mailFormat = {
-      email: existingEmail.email,
-      html: activateAccountTemplate(link, existingEmail.username),
+      email: user.email,
+      html: activateAccountTemplate(link, user.name),
       subject: 'RESEND: ACCOUNT ACTIVATION'
     };
 
-    // await sendEmail(mailFormat);
+    await sendEmail(mailFormat);
     return {
       message: 'Activation link has been sent to your email address',
       status: 200,
-      link
+      //link
     }
 
   } catch (e) {
-    throw { errror:e }
+    throw (e)
     
   }
 }
@@ -190,17 +198,9 @@ exports.generateVerificationUrl = async (data) => {
 // USER LOGIN SERVICE
 exports.loginUser = async (data) => {
     try {
-        const { EmailOrUsername, password, protocol, host } = await data
+        const { email, password, protocol, host } = await data
 
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const isEmail = emailRegex.test(EmailOrUsername)
-
-        let user
-        if(isEmail){
-          user = await Users.findOne({where: { email: EmailOrUsername }})
-        }else{
-          user = await Users.findOne({where: { username: EmailOrUsername }})
-        }
+        const user = await Users.findOne({where: { email }})
 
         if(!user){
           return {
@@ -209,28 +209,28 @@ exports.loginUser = async (data) => {
           }
         }
         
-        if(!user.emailVerified){
+        if(!user.isVerified){
           
           const token = jwt.sign({ userId: user.id }, env.JWT_SECRET, { expiresIn: '5mins' })
           const link = `${protocol}://${host}/api/v1/auth/activate-account/${token}`
           
           const mailFormat = {
             email: user.email,
-            html: activateAccountTemplate(link, user.username),
+            html: activateAccountTemplate(link, user.name),
             subject: 'RE: ACCOUNT ACTIVATION'
           }
           
-          // await sendEmail(mailFormat)
+          await sendEmail(mailFormat)
 
           return {
             message: 'this account has not been activated yet, an activation email has been sent, follow the instructions to verify your account',
             status: 400,
-            link
+            //link
           }
         }
 
 
-        const confirmPassword = await decrypt(password, user.password)
+        const confirmPassword = await decrypt(password, user.passwordHash)
         if(!confirmPassword){
           return {
             message: 'incorrect password',
@@ -255,41 +255,42 @@ exports.passwordResetUrl = async (data) => {
   try {
       const { email, host, protocol } = await data
 
-      const existingUser = await Users.findOne({where: { email }})
-      if(!existingUser){
+      const user = await Users.findOne({where: { email }})
+      if(!user){
         return {
           message: 'account do not exist',
           status: 404
         }
       }
 
-      if(!existingUser.emailVerified){
+      if(!user.isVerified){
         return {
           message: 'account has not been activated yet, activate before reseting password',
           status: 400
         }
       }
 
-      if(existingUser.authProvider !== 'local'){
+      if(user.authProvider !== 'local'){
         return {
-          message: 'can\'t generate a password reset link for this account because, this account used google signin method'
+          message: 'can\'t generate a password reset link for this account because, this account used google signin method',
+          status: 400
         }
       }
 
-      const newToken = jwt.sign({ userId: existingUser.id }, env.JWT_SECRET, { expiresIn: '5mins' });
+      const newToken = jwt.sign({ userId: user.id }, env.JWT_SECRET, { expiresIn: '5mins' });
       const link = `${protocol}://${host}/api/v1/auth/forgotten-password/reset-password/${newToken}`;
       
       const mailFormat = {
-        email: existingUser.email,
-        html: resetPasswordTemplate(link, existingUser.username),
+        email: user.email,
+        html: resetPasswordTemplate(link, user.name),
         subject: 'RESET PASSWORD'
       };
       
-      // await sendEmail(mailFormat);
+      await sendEmail(mailFormat);
       return {
         message: 'a password reset email has been sent to your email address',
         status: 200,
-        link
+        //link
       }
 
   } catch (e) {
@@ -347,13 +348,8 @@ exports.resetPassword = async (req, res) => {
           })
         };
 
-        if (!user.emailVerified) {
-          user.emailVerified = true
-          user.accountStatus = 'active'
-        };
-
         const encryptedPassword = await encrypt(newPassword)
-        user.password = encryptedPassword
+        user.passwordHash = encryptedPassword
         await user.save()
         res.status(200).json({
           response: {

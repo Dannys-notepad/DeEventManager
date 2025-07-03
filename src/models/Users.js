@@ -6,27 +6,17 @@ class Users extends Model {}
 Users.init(
   {
     id: {
-      type: DataTypes.UUID,
+      type: DataTypes.STRING(20),
       primaryKey: true,
       allowNull: false,
-      defaultValue: DataTypes.UUIDV4,
       unique: true,
-      // Removed validate - validations belong in controllers/services
     },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    lastName: {
-      type: DataTypes.STRING,
+    name: {
+      type: DataTypes.STRING(100),
       allowNull: false
     },
     email: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
       validate: {
@@ -38,52 +28,71 @@ Users.init(
       allowNull: false,
       defaultValue: 'local'
     },
-    password: {
+    passwordHash: {
       type: DataTypes.STRING,
       allowNull: true,
       validate: {
-        len: [8, 128] // Enforce password length if provided
+        len: [8, 128]
       }
     },
     googleId: {
       type: DataTypes.STRING,
       allowNull: true
     },
-    emailVerified: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
     accountStatus: {
       type: DataTypes.ENUM('active', 'inactive', 'suspended'),
       defaultValue: 'inactive'
     },
+    accountType: {
+      type: DataTypes.ENUM('organizer', 'attendee', 'admin'),
+      defaultValue: 'organizer'
+    },
+    organization: {
+      type: DataTypes.STRING(100),
+      allowNull: false
+    },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: DataTypes.NOW // Standard Sequelize timestamp
+      defaultValue: DataTypes.NOW 
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: DataTypes.NOW // Standard Sequelize timestamp
-    }
+      defaultValue: DataTypes.NOW
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
   },
   {
     sequelize,
-    modelName: 'User', // Changed to singular (best practice)
-    tableName: 'users', // Changed to lowercase
-    timestamps: true, // Enable automatic timestamp management
-    paranoid: true, // Optional: enable soft deletes
+    modelName: 'User', 
+    tableName: 'users', 
+    timestamps: true, 
+    paranoid: true, 
     charset: 'utf8mb4',
     collate: 'utf8mb4_unicode_ci',
     indexes: [
-      // Add indexes for better performance
       { unique: true, fields: ['email'] },
       { fields: ['googleId'] },
       { fields: ['accountStatus'] }
     ]
   }
 );
+
+Users.prototype.toJSON = ()=>{
+  const values = Object.assign({}, this.get());
+  delete values.passwordHash;
+  delete values.passwordResetToken;
+  delete values.passwordResetExpires;
+  return values;
+};
 
 // Consolidated associate function
 Users.associate = function(models) {
@@ -96,7 +105,7 @@ Users.associate = function(models) {
   
   // Has one profile
   Users.hasOne(models.UserProfile, {
-    foreignKey: 'userId', // Changed from 'id' to 'userId'
+    foreignKey: 'userId', 
     as: 'profile',
     onDelete: 'CASCADE'
   });

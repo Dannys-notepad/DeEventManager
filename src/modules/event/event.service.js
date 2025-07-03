@@ -123,7 +123,8 @@ exports.viewEvent = async (data) => {
                 status: 404
             }
         }
-
+        const editedEvent = event.speakersPerformers.replace(/['"]/g, '')
+        event.speakersPerformers = editedEvent
         return {
             event,
             status: 200
